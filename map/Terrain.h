@@ -1,11 +1,11 @@
 #ifndef GRAPHICS_CUBE_H
 #define GRAPHICS_CUBE_H
 
-#include "../shader/shader.h"
-#include "../util/color.h"
+#include / Users / annemara / Desktop / FP2300 / Final - Project - behenry - aemara / src / shader / shader.h
 
 #include <vector>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 using std::vector, glm::vec3, glm::mat4;
