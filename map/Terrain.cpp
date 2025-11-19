@@ -13,6 +13,21 @@
     // Set model matrix to identity
     // Call helper function to create cubes and position them
 
+// Constructor
+Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
+{
+    this->shader = shader;
+    this->width = width;
+    this->height = height;
+    this->cellSize = cellSize;
+    // Identity matrix
+    this->model = glm::mat4(1.0f);
+
+    this->createTiles();
+}
+
+
+
 // Helper functions:
     // Clear tiles vector
     // Prepare cube colors
