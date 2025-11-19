@@ -1,5 +1,16 @@
 #include "engine.h"
 
+
+// OUTLINE / TODOS
+// Engine::render()
+  // Clear the screen
+  // Comput view and projection matrices
+  // shader.use()
+  // Call terrain.draw(view, projection)
+  // Swap buffers
+
+
+
 const color red(1, 0, 0);
 const color green(0, 1, 0);
 const color blue(0, 0, 1);
