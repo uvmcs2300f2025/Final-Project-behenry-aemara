@@ -3,7 +3,6 @@
 #include <cassert>
 
 
-
 // OUTLINE / TODOS
 
 
@@ -39,11 +38,65 @@ Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
         // Create Cube with shader, position, size, colors
         // Add Cube to tiles vector
 
+void Terrain::createTiles()
+{
+    tiles.clear();
+    vector<color> colors = 
+    {
+        // Front top right
+        {1.0f, 0.0f, 0.0f},
+        // Front top left
+        {0.0f, 1.0f, 0.0f},
+        // Front bottom right
+        {0.0f, 0.0f, 1.0f},
+        // Front bottom left
+        {1.0f, 1.0f, 0.0f},
+        // Back top right
+        {1.0f, 0.0f, 1.0f},
+        // Back top left
+        {0.0f, 1.0f, 1.0f},
+        // Back bottom right
+        {0.5f, 0.5f, 0.5f},
+        // Back bottom left
+        {1.0f, 1.0f, 1.0f}
+    };
+    for (int x = 0; x < width; ++x) 
+    {
+        for (int z = 0; z < height; ++z) 
+        {
+            float worldX = x * cellSize;
+            float worldZ = z * cellSize;
+            // Set to 0 for now to get it running
+            // Will adjust later based on elevation
+            float height = 0.0f;
+
+            glm::vec3 pos = glm::vec3(worldX, height, worldZ);
+            // Flat cube
+            glm::vec3 size = glm::vec3(cellSize / 2.0f, cellSize / 10.0f, cellSize / 2.0f);
+
+            Cube cube(this->shader, pos, size, colors);
+            tiles.push_back(cube);
+        }
+    }
+}
+
+
+
 // draw function:
     // draw(view, projection)
         // Loop over all cubes in tiles vector
             // Set uniforms (model, view, projection)
             // Draw cube
+// draw(view, projection)
+void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
+{
+    for (const Cube &cube : tiles)
+    {
+        cube.setUniforms(this->model, view, projection);
+        cube.draw(this->model, view, projection);
+    }
+}
+
 
 
 // TODOS:
