@@ -26,7 +26,6 @@ struct color
     float green;
     float blue;
     float yellow;
-
 };
 
 // Store terrain dimensions and position
@@ -35,63 +34,35 @@ class Terrain
 public:
     Terrain(Shader &shader, int width, int height, float cellSize);
     void draw(const glm::mat4 &view, const glm::mat4 &projection) const;
+
+    // loading in asc file
+    bool loadHeightmapASC(const std::string &filename);
+
 private:
     Shader shader;
+    // check the notation of this line? unsure if it needs an additional
+    glm::mat4 model;
+
     int width;
     int height;
     float cellSize;
-    glm::mat4 model;
-    vector<Cube> tiles;
-    void initTiles();
-};
+    // exspect to change this for best effects
+    float heightScale = 1.0f;
 
-// TODO: Store vector of cube objects
+    std::vector<std::vector<float>> heightData;
+    std::vector<float> vertices;
+    std::vector<unsigned int> indices;
 
-
-// TODO: Build a grid of cubes- flat for now until it works, then add 3D modeling later
-
-// TODO: Draw all cubes using the shader
-
-
-
-
-
-
-class Cube
-{
-public:
-    Cube(Shader &shader, vec3 pos, vec3 size, vector<color> colors);
-    ~Cube();
-    void draw(const mat4 &model, const mat4 &view, const mat4 &projection) const;
-    void setUniforms(const mat4 &model, const mat4 &view, const mat4 &projection) const;
-
-    void rotateX(float delta);
-    void rotateY(float delta);
-    void rotateZ(float delta);
-
-    void changeSize(float delta);
-
-private:
-    Shader shader;
-    vec3 pos;
-    vec3 size;
-    vector<color> colors;
-    float degreeX;
-    float degreeY;
-    float degreeZ;
-
-    // Vectors
-    vector<float> vertices;
-    vector<unsigned int> indices;
-
-    unsigned int VAO;
-    unsigned int VBO;
-    unsigned int EBO;
-
-    void initVectors();
+    // unsure if this line is needed -> link source from notes HERE
+    unsigned int VAO, VBO, EBO;
+    void generateMesh();
     void initVAO();
     void initVBO();
     void initEBO();
+
+    glm::mat4 model;
+    vector<Cube> tiles;
+    void initTiles();
 };
 
 #endif // GRAPHICS_CUBE_H
