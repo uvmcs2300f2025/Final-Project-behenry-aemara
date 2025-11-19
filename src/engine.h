@@ -9,6 +9,12 @@
 #include "shapes/cube.h"
 #include "shader/shaderManager.h"
 
+// Engine owns a terrain, which it initalizes in the constructor
+// The render methods will call terrain.draw() each frame
+
+
+
+
 using std::vector, std::unique_ptr, std::make_unique, glm::ortho, glm::cross,
     glm::mat4, glm::vec3, glm::vec4;
 

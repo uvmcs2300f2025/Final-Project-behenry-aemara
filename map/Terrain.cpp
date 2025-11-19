@@ -2,6 +2,46 @@
 #include "../util/debug.h"
 #include <cassert>
 
+
+
+// OUTLINE / TODOS
+
+
+// Constructor:
+    // Save shader reference
+    // Save dimensions, size, position
+    // Set model matrix to identity
+    // Call helper function to create cubes and position them
+
+// Helper functions:
+    // Clear tiles vector
+    // Prepare cube colors
+    // Loop over x from 0 to width
+        // Compute worldX, worldZ, based on cellSize
+        // height = 0 for now, then we adjust later to elevation
+        // Position = (worldX, height, worldZ)
+        // Size = scaled cube dims
+        // Create Cube with shader, position, size, colors
+        // Add Cube to tiles vector
+
+// draw function:
+    // draw(view, projection)
+        // Loop over all cubes in tiles vector
+            // Set uniforms (model, view, projection)
+            // Draw cube
+
+
+// TODOS:
+
+// Load cvs file
+// Replace flat grid with actual heights
+// Switch cubes to single mesh for better performance
+
+
+
+
+
+
 Cube::Cube(Shader &shader, glm::vec3 pos, glm::vec3 size, vector<color> colors)
 {
     this->shader = shader;

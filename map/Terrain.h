@@ -10,6 +10,21 @@
 
 using std::vector, glm::vec3, glm::mat4;
 
+// OUTLINE / TODOS
+
+// 1. Store a reference to the shader used to draw the cube
+// 2. Store terrain dimensions and position
+// 3. Store a vector of Cube objects
+// 4. Build a grid of cubes - flat for now until it works, then add 3D modeling later
+// 5. Draw all cubes using the shader
+
+
+
+
+
+
+
+
 class Cube
 {
 public:
