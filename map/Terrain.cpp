@@ -2,15 +2,13 @@
 #include "../util/debug.h"
 #include <cassert>
 
-
 // OUTLINE / TODOS
 
-
 // Constructor:
-    // Save shader reference
-    // Save dimensions, size, position
-    // Set model matrix to identity
-    // Call helper function to create cubes and position them
+// Save shader reference
+// Save dimensions, size, position
+// Set model matrix to identity
+// Call helper function to create cubes and position them
 
 // Constructor
 Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
@@ -21,48 +19,49 @@ Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
     this->cellSize = cellSize;
     // Identity matrix
     this->model = glm::mat4(1.0f);
+    // Initialize tiles
+    this->initVAO();
+    this->initVBO();
+    this->initEBO();
 
     this->createTiles();
 }
 
-
-
 // Helper functions:
-    // Clear tiles vector
-    // Prepare cube colors
-    // Loop over x from 0 to width
-        // Compute worldX, worldZ, based on cellSize
-        // height = 0 for now, then we adjust later to elevation
-        // Position = (worldX, height, worldZ)
-        // Size = scaled cube dims
-        // Create Cube with shader, position, size, colors
-        // Add Cube to tiles vector
+// Clear tiles vector
+// Prepare cube colors
+// Loop over x from 0 to width
+// Compute worldX, worldZ, based on cellSize
+// height = 0 for now, then we adjust later to elevation
+// Position = (worldX, height, worldZ)
+// Size = scaled cube dims
+// Create Cube with shader, position, size, colors
+// Add Cube to tiles vector
 
 void Terrain::createTiles()
 {
     tiles.clear();
-    vector<color> colors = 
+    vector<color> colors =
+        {
+            // Front top right
+            {1.0f, 0.0f, 0.0f},
+            // Front top left
+            {0.0f, 1.0f, 0.0f},
+            // Front bottom right
+            {0.0f, 0.0f, 1.0f},
+            // Front bottom left
+            {1.0f, 1.0f, 0.0f},
+            // Back top right
+            {1.0f, 0.0f, 1.0f},
+            // Back top left
+            {0.0f, 1.0f, 1.0f},
+            // Back bottom right
+            {0.5f, 0.5f, 0.5f},
+            // Back bottom left
+            {1.0f, 1.0f, 1.0f}};
+    for (int x = 0; x < width; ++x)
     {
-        // Front top right
-        {1.0f, 0.0f, 0.0f},
-        // Front top left
-        {0.0f, 1.0f, 0.0f},
-        // Front bottom right
-        {0.0f, 0.0f, 1.0f},
-        // Front bottom left
-        {1.0f, 1.0f, 0.0f},
-        // Back top right
-        {1.0f, 0.0f, 1.0f},
-        // Back top left
-        {0.0f, 1.0f, 1.0f},
-        // Back bottom right
-        {0.5f, 0.5f, 0.5f},
-        // Back bottom left
-        {1.0f, 1.0f, 1.0f}
-    };
-    for (int x = 0; x < width; ++x) 
-    {
-        for (int z = 0; z < height; ++z) 
+        for (int z = 0; z < height; ++z)
         {
             float worldX = x * cellSize;
             float worldZ = z * cellSize;
@@ -80,13 +79,11 @@ void Terrain::createTiles()
     }
 }
 
-
-
 // draw function:
-    // draw(view, projection)
-        // Loop over all cubes in tiles vector
-            // Set uniforms (model, view, projection)
-            // Draw cube
+// draw(view, projection)
+// Loop over all cubes in tiles vector
+// Set uniforms (model, view, projection)
+// Draw cube
 // draw(view, projection)
 void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
 {
@@ -97,18 +94,11 @@ void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
     }
 }
 
-
-
 // TODOS:
 
 // Load cvs file
 // Replace flat grid with actual heights
 // Switch cubes to single mesh for better performance
-
-
-
-
-
 
 Cube::Cube(Shader &shader, glm::vec3 pos, glm::vec3 size, vector<color> colors)
 {
@@ -207,9 +197,9 @@ void Cube::initVectors()
                                                     colors[3].red,
                                                     colors[3].green,
                                                     colors[3].blue, // Bottom left
-                                                    // TODO: complete this method by adding the four vertices that make the back side of the cube
-                                                    //       color them with colors[4] through colors[7]
-                                                    // Back face:
+                                                                    // TODO: complete this method by adding the four vertices that make the back side of the cube
+                                                                    //       color them with colors[4] through colors[7]
+                                                                    // Back face:
                                                     0.5f,
                                                     0.5f,
                                                     -0.5f,
