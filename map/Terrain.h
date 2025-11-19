@@ -54,13 +54,16 @@ private:
     std::vector<unsigned int> indices;
 
     // unsure if this line is needed -> link source from notes HERE
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO;
+    unsigned int VBO;
+    unsigned int EBO;
+    // this is the way that i was gonna import my grid
     void generateMesh();
     void initVAO();
     void initVBO();
     void initEBO();
 
-    glm::mat4 model;
+    // glm::mat4 model;
     vector<Cube> tiles;
     void initTiles();
 };
