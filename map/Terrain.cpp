@@ -2,13 +2,15 @@
 #include "../util/debug.h"
 #include <cassert>
 
+
 // OUTLINE / TODOS
 
+
 // Constructor:
-// Save shader reference
-// Save dimensions, size, position
-// Set model matrix to identity
-// Call helper function to create cubes and position them
+    // Save shader reference
+    // Save dimensions, size, position
+    // Set model matrix to identity
+    // Call helper function to create cubes and position them
 
 // Constructor
 Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
@@ -17,72 +19,56 @@ Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
     this->width = width;
     this->height = height;
     this->cellSize = cellSize;
-
     // Identity matrix
     this->model = glm::mat4(1.0f);
-
-    // Initialize tiles
-    this->initVAO();
-    this->initVBO();
-    this->initEBO();
 
     this->createTiles();
 }
 
+
+
 // Helper functions:
-// Clear tiles vector
-// Prepare cube colors
-// Loop over x from 0 to width
-// Compute worldX, worldZ, based on cellSize
-// height = 0 for now, then we adjust later to elevation
-// Position = (worldX, height, worldZ)
-// Size = scaled cube dims
-// Create Cube with shader, position, size, colors
-// Add Cube to tiles vector
+    // Clear tiles vector
+    // Prepare cube colors
+    // Loop over x from 0 to width
+        // Compute worldX, worldZ, based on cellSize
+        // height = 0 for now, then we adjust later to elevation
+        // Position = (worldX, height, worldZ)
+        // Size = scaled cube dims
+        // Create Cube with shader, position, size, colors
+        // Add Cube to tiles vector
 
 void Terrain::createTiles()
 {
-    vertices.clear();
-    indices.clear();
-    // Im confused on this vector? i think i am just missing something
-    vector<color> colors =
-        {
-            // Front top right
-            {1.0f, 0.0f, 0.0f},
-            // Front top left
-            {0.0f, 1.0f, 0.0f},
-            // Front bottom right
-            {0.0f, 0.0f, 1.0f},
-            // Front bottom left
-            {1.0f, 1.0f, 0.0f},
-            // Back top right
-            {1.0f, 0.0f, 1.0f},
-            // Back top left
-            {0.0f, 1.0f, 1.0f},
-            // Back bottom right
-            {0.5f, 0.5f, 0.5f},
-            // Back bottom left
-            {1.0f, 1.0f, 1.0f}};
-    for (int x = 0; x < width; ++x)
+    tiles.clear();
+    vector<color> colors = 
     {
-        for (int z = 0; z < height; ++z)
+        // Front top right
+        {1.0f, 0.0f, 0.0f},
+        // Front top left
+        {0.0f, 1.0f, 0.0f},
+        // Front bottom right
+        {0.0f, 0.0f, 1.0f},
+        // Front bottom left
+        {1.0f, 1.0f, 0.0f},
+        // Back top right
+        {1.0f, 0.0f, 1.0f},
+        // Back top left
+        {0.0f, 1.0f, 1.0f},
+        // Back bottom right
+        {0.5f, 0.5f, 0.5f},
+        // Back bottom left
+        {1.0f, 1.0f, 1.0f}
+    };
+    for (int x = 0; x < width; ++x) 
+    {
+        for (int z = 0; z < height; ++z) 
         {
             float worldX = x * cellSize;
             float worldZ = z * cellSize;
             // Set to 0 for now to get it running
             // Will adjust later based on elevation
             float height = 0.0f;
-
-            /*
-            vertices.push_back(worldX);
-            vertices.push_back(height);
-            vertices.push_back(worldZ);
-            #setup colors for each vertex and can add height data later
-            vertices.push_back(colors[0].red);
-             vertices.push_back(colors[0].green);
-             vertices.push_back(colors[0].blue);
-
-            */
 
             glm::vec3 pos = glm::vec3(worldX, height, worldZ);
             // Flat cube
@@ -92,36 +78,245 @@ void Terrain::createTiles()
             tiles.push_back(cube);
         }
     }
-    for (int i = 0; i < height - 1; ++i)
+}
+
+
+
+// draw function:
+    // draw(view, projection)
+        // Loop over all cubes in tiles vector
+            // Set uniforms (model, view, projection)
+            // Draw cube
+// draw(view, projection)
+void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
+{
+    for (const Cube &cube : tiles)
     {
-        for (j = 0; j < width - 1; ++j)
-        {
-            int topLeft = i * width + j;
-            int topRight = topLeft + 1;
-            int bottomLeft = (i + 1) * width + j;
-            int bottomRight = bottomLeft + 1;
-
-            // First triangle
-            indices.push_back(topLeft);
-            indices.push_back(bottomLeft);
-            indices.push_back(topRight);
-
-            // Second triangle
-            indices.push_back(topRight);
-            indices.push_back(bottomLeft);
-            indices.push_back(bottomRight);
-        }
+        cube.setUniforms(this->model, view, projection);
+        cube.draw(this->model, view, projection);
     }
 }
-void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
 
+
+
+// TODOS:
+
+// Load cvs file
+// Replace flat grid with actual heights
+// Switch cubes to single mesh for better performance
+
+
+
+
+
+
+Cube::Cube(Shader &shader, glm::vec3 pos, glm::vec3 size, vector<color> colors)
 {
-    shader.use();
-    shader.setMatrix4("model", this->model);
-    shader.setMatrix4("view", this->view);
-    shader.setMatrix4("projection", this->projection);
+    this->shader = shader;
+    this->pos = pos;
+    this->size = size;
+    this->colors = colors;
 
-    glBlindVertexArray(this->VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    degreeX = degreeY = degreeZ = 0.0f;
+
+    this->initVectors();
+    this->initVAO();
+    this->initVBO();
+    this->initEBO();
+}
+
+Cube::~Cube()
+{
+    glDeleteVertexArrays(1, &this->VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+}
+
+void Cube::setUniforms(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection) const
+{
+    glm::mat4 modelMatrix = model;
+    // The model matrix is used to transform the vertices of the shape in relation to the world space.
+    modelMatrix = translate(modelMatrix, vec3(pos));
+    // Rotate the cube
+    modelMatrix = glm::rotate(modelMatrix, degreeX, glm::vec3(1.0f, 0.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, degreeY, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, degreeZ, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    // The size of the shape is scaled by the model matrix to make the shape larger or smaller.
+    modelMatrix = scale(modelMatrix, vec3(size));
+    this->shader.setMatrix4("model", modelMatrix);
+    this->shader.setMatrix4("view", view);
+    this->shader.setMatrix4("projection", projection);
+}
+
+void Cube::rotateX(float delta)
+{
+    degreeX += delta;
+}
+
+void Cube::rotateY(float delta)
+{
+    degreeY += delta;
+}
+
+void Cube::rotateZ(float delta)
+{
+    degreeZ += delta;
+}
+
+void Cube::changeSize(float delta)
+{
+    size[0] += delta;
+    size[1] += delta;
+    size[2] += delta;
+}
+
+void Cube::draw(const mat4 &model, const mat4 &view, const mat4 &projection) const
+{
+    glBindVertexArray(this->VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+void Cube::initVectors()
+{
+    assert(colors.size() == 8);
+    this->vertices.insert(this->vertices.end(), {
+                                                    // Front face:
+                                                    0.5f,
+                                                    0.5f,
+                                                    0.5f,
+                                                    colors[0].red,
+                                                    colors[0].green,
+                                                    colors[0].blue, // Top right
+                                                    -0.5f,
+                                                    0.5f,
+                                                    0.5f,
+                                                    colors[1].red,
+                                                    colors[1].green,
+                                                    colors[1].blue, // Top left
+                                                    0.5f,
+                                                    -0.5f,
+                                                    0.5f,
+                                                    colors[2].red,
+                                                    colors[2].green,
+                                                    colors[2].blue, // Bottom right
+                                                    -0.5f,
+                                                    -0.5f,
+                                                    0.5f,
+                                                    colors[3].red,
+                                                    colors[3].green,
+                                                    colors[3].blue, // Bottom left
+                                                    // TODO: complete this method by adding the four vertices that make the back side of the cube
+                                                    //       color them with colors[4] through colors[7]
+                                                    // Back face:
+                                                    0.5f,
+                                                    0.5f,
+                                                    -0.5f,
+                                                    colors[4].red,
+                                                    colors[4].green,
+                                                    colors[4].blue,
+                                                    -0.5f,
+                                                    0.5f,
+                                                    -0.5f,
+                                                    colors[5].red,
+                                                    colors[5].green,
+                                                    colors[5].blue, // Top left
+                                                    0.5f,
+                                                    -0.5f,
+                                                    -0.5f,
+                                                    colors[6].red,
+                                                    colors[6].green,
+                                                    colors[6].blue, // Bottom right
+                                                    -0.5f,
+                                                    -0.5f,
+                                                    -0.5f,
+                                                    colors[7].red,
+                                                    colors[7].green,
+                                                    colors[7].blue, // Botto
+
+                                                    // // Back right
+
+                                                    // Bottom left
+                                                    // Bottom right
+                                                    // Top right
+                                                    // Top left
+                                                });
+
+    this->indices.insert(this->indices.end(), {
+                                                  // The indices reference the vertices above.
+                                                  // Each face is drawn from two triangles,
+                                                  //   and each triangle is drawn from three vertices.
+                                                  // Front face
+                                                  0,
+                                                  1,
+                                                  2,
+                                                  1,
+                                                  2,
+                                                  3,
+                                                  0,
+                                                  2,
+                                                  4,
+                                                  2,
+                                                  6,
+                                                  4,
+                                                  // TODO: complete the other five faces
+
+                                                  4,
+                                                  5,
+                                                  6,
+                                                  5,
+                                                  7,
+                                                  6,
+                                                  // Left face
+                                                  1,
+                                                  3,
+                                                  5,
+                                                  3,
+                                                  7,
+                                                  5,
+                                                  // Bottom face
+                                                  2,
+                                                  3,
+                                                  6,
+                                                  3,
+                                                  7,
+                                                  6,
+                                                  // Top face
+                                                  0,
+                                                  1,
+                                                  4,
+                                                  1,
+                                                  5,
+                                                  4,
+
+                                              });
+}
+
+void Cube::initVAO()
+{
+    glGenVertexArrays(1, &this->VAO);
+    glBindVertexArray(this->VAO);
+}
+
+void Cube::initVBO()
+{
+    glGenBuffers(1, &this->VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+    glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+
+    // Color attribute (3 floats)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+}
+
+void Cube::initEBO()
+{
+    glGenBuffers(1, &this->EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 }
