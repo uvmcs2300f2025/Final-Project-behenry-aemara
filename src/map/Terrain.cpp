@@ -64,6 +64,15 @@ bool Terrain::loadHeightmapASC(const std::string &filename)
 
     generateMesh();
     initBuffers();
+    // std::cout << "Loaded ASC: " << ncols << " x " << nrows << std::endl;
+
+    // Print some sample heights
+    std::cout << "Sample values:" << std::endl;
+    std::cout << "  heightData[0][0] = " << heightData[0][0] << std::endl;
+    std::cout << "  heightData[nrows/2][ncols/2] = "
+              << heightData[nrows / 2][ncols / 2] << std::endl;
+    std::cout << "  heightData[nrows-1][ncols-1] = "
+              << heightData[nrows - 1][ncols - 1] << std::endl;
 
     return true;
 }
@@ -73,16 +82,20 @@ void Terrain::generateMesh()
 {
     vertices.clear();
     indices.clear();
+    const int sampleStep = 10;
 
-    vertices.reserve(static_cast<size_t>(width) * height * 3);
+    meshHeight = (height + sampleStep - 1) / sampleStep;
+    meshWidth = (width + sampleStep - 1) / sampleStep;
 
-    for (int row = 0; row < height; ++row)
+    vertices.reserve(static_cast<size_t>(meshWidth) * meshHeight * 3);
+
+    for (int row = 0; row < height; row += sampleStep)
     {
-        for (int col = 0; col < width; ++col)
+        for (int col = 0; col < width; col += sampleStep)
         {
             float x = col * cellSize;
             float z = row * cellSize;
-            float y = heightScale * heightData[row][col];
+            float y = cellScale * heightData[row][col];
 
             vertices.push_back(x);
             vertices.push_back(y);
@@ -90,13 +103,13 @@ void Terrain::generateMesh()
         }
     }
 
-    for (int row = 0; row < height - 1; ++row)
+    for (int row = 0; row < meshHeight - 1; ++row)
     {
-        for (int col = 0; col < width - 1; ++col)
+        for (int col = 0; col < meshWidth - 1; ++col)
         {
-            unsigned int topLeft = row * width + col;
+            unsigned int topLeft = row * meshWidth + col;
             unsigned int topRight = topLeft + 1;
-            unsigned int bottomLeft = (row + 1) * width + col;
+            unsigned int bottomLeft = (row + 1) * meshWidth + col;
             unsigned int bottomRight = bottomLeft + 1;
 
             // Triangle 1
@@ -110,6 +123,9 @@ void Terrain::generateMesh()
             indices.push_back(bottomRight);
         }
     }
+    std::cout << "Mesh: " << meshWidth << " x " << meshHeight
+              << " vertices (" << vertices.size() / 3 << " verts, "
+              << indices.size() / 3 << " tris)\n";
 }
 
 // Upload mesh to GPU

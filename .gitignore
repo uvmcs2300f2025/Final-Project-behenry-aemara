@@ -76,3 +76,13 @@ _deps/
 
 # Logs
 *.log
+# --------------------------
+#   GIS / Raster Data
+# --------------------------
+
+# Ignore huge DEM files
+rastert_dem_241.asc
+*.asc
+*.tif
+*.tiff
+*.dem
