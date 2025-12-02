@@ -1,16 +1,27 @@
 {
-    "configurations": [
-        {
-            "name": "Mac",
-            "includePath": [
-                "${workspaceFolder}/**"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/clang",
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "macos-clang-arm64"
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "Mac",
+      "defines": [
+        "NDEBUG"
+      ],
+      "includePath": [
+        "${workspaceFolder}/src",
+        // Headers that FetchContent downloaded into the build tree:
+        "${workspaceFolder}/cmake-build-debug/_deps/glm-src",
+        "${workspaceFolder}/cmake-build-debug/_deps/glfw-src/include",
+        "${workspaceFolder}/cmake-build-debug/_deps/glad-src/include",
+        // (Optional) system/Homebrew headers if you ever use them:
+        "/opt/homebrew/include",
+        // Your existing R paths (can be removed if you don't need them):
+        "/Library/Frameworks/R.framework/Resources/include",
+        "/opt/R/arm64/include"
+      ],
+      "compilerPath": "/usr/bin/clang++",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "macos-clang-arm64"
+    }
+  ],
+  "version": 4
 }

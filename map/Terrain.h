@@ -1,11 +1,11 @@
-#ifndef GRAPHICS_CUBE_H
-#define GRAPHICS_CUBE_H
+#ifndef TERRAIN_H
+#define TERRAIN_H
 
-#include / Users / annemara / Desktop / FP2300 / Final - Project - behenry - aemara / src / shader / shader.h
-
+#include "shader/shader.h"
+// #include "shapes/cube.h"
 #include <vector>
+#include <string>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 using std::vector, glm::vec3, glm::mat4;
@@ -57,15 +57,15 @@ private:
     unsigned int VAO;
     unsigned int VBO;
     unsigned int EBO;
-    // this is the way that i was gonna import my grid
+    // this is the way that i was gonna import our grid
     void generateMesh();
     void initVAO();
     void initVBO();
     void initEBO();
 
     // glm::mat4 model;
-    vector<Cube> tiles;
-    void initTiles();
+    // vector<Cube> tiles;
+    // void initTiles();
 };
 
-#endif // GRAPHICS_CUBE_H
+#endif // TERRAIN_H

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(3D_graphics)
+project(FinalProject)
 set(CMAKE_CXX_STANDARD 17)
 
 
@@ -98,5 +98,12 @@ add_definitions(-DGLFW_INCLUDE_NONE
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${glad_SOURCE_DIR}/include
+    ${glfw_SOURCE_DIR}/include
+    ${glm_SOURCE_DIR}
+)
+
 # Include libraries
 target_link_libraries(${PROJECT_NAME} glfw glm::glm)

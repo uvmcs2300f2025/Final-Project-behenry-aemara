@@ -6,14 +6,11 @@
 #include <memory>
 #include <vector>
 
-#include "shapes/cube.h"
+// #include "src/shapes/cube.h"
 #include "shader/shaderManager.h"
 
 // Engine owns a terrain, which it initalizes in the constructor
 // The render methods will call terrain.draw() each frame
-
-
-
 
 using std::vector, std::unique_ptr, std::make_unique, glm::ortho, glm::cross,
     glm::mat4, glm::vec3, glm::vec4;
@@ -23,7 +20,8 @@ using std::vector, std::unique_ptr, std::make_unique, glm::ortho, glm::cross,
  * @details The Engine class is responsible for initializing the GLFW window,
  * loading shaders, and rendering the game state.
  */
-class Engine {
+class Engine
+{
 private:
   /// @brief The actual GLFW window.
   GLFWwindow *window{};
@@ -41,16 +39,15 @@ private:
   ShaderManager shaderManager;
 
   // Transformation matrix
-  glm::mat4 modelLeft;      // Model matrix for a 3D object
+  glm::mat4 modelLeft; // Model matrix for a 3D object
   glm::mat4 modelRight;
   glm::mat4 view;       // The camera's position and orientation in the world
   glm::mat4 projection; // Orthographic projection matrix maps a 3D scene to a
                         // 2D viewport
 
-
   // Shapes
-  unique_ptr<Cube> cubeLeft;
-  unique_ptr<Cube> cubeRight;
+  // unique_ptr<Cube> cubeLeft;
+  // unique_ptr<Cube> cubeRight;
 
   // Keep track of the camera's distance from the origin
   // Moving the camera closer and farther will have the
@@ -58,7 +55,7 @@ private:
   float cameraZ;
 
   // Shaders
-  Shader cubeShader;
+  // Shader cubeShader;
 
   /// @note Call glCheckError() after every OpenGL call to check for errors.
   GLenum glCheckError_(const char *file, int line);

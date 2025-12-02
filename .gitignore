@@ -1,3 +1,7 @@
+# --------------------------
+#   C/C++ / OpenGL Projects
+# --------------------------
+
 # Prerequisites
 *.d
 
@@ -16,6 +20,7 @@
 
 # Debugger Files
 *.pdb
+*.dwo
 
 # Compiled Dynamic libraries
 *.so
@@ -37,5 +42,37 @@
 *.out
 *.app
 
-# debug information files
-*.dwo
+# --------------------------
+#   CMake Build Outputs
+# --------------------------
+
+# Build directories (the big important part)
+cmake-build-debug/
+cmake-build-release/
+build/
+out/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# FetchContent dependencies
+_deps/
+
+# --------------------------
+#   IDE & OS Junk
+# --------------------------
+
+# macOS metadata
+.DS_Store
+
+# VS Code
+.vscode/
+
+# CLion / JetBrains
+.idea/
+
+# Logs
+*.log

@@ -1,5 +1,6 @@
 #include "Terrain.h"
-#include "../util/debug.h"
+// #include "../util/debug.h"
+#include "util/debug.h"
 #include <cassert>
 
 // OUTLINE / TODOS
