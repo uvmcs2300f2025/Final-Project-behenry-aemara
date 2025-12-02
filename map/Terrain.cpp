@@ -1,128 +1,170 @@
-#include "Terrain.h"
-// #include "../util/debug.h"
-#include "util/debug.h"
-#include <cassert>
+#include "map/Terrain.h" // adjust path if needed (e.g., "Terrain.h" if in same folder)
 
-// OUTLINE / TODOS
+#include <fstream>
+#include <iostream>
 
-// Constructor:
-// Save shader reference
-// Save dimensions, size, position
-// Set model matrix to identity
-// Call helper function to create cubes and position them
+#include <glad/glad.h>
 
-// Constructor
+// Constructor just stores basic info; real mesh is built in loadHeightmapASC
 Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
+    : shader(shader),
+      model(1.0f),
+      width(width),
+      height(height),
+      cellSize(cellSize) {}
+
+// Load an ESRI ASCII grid (.asc) heightmap
+bool Terrain::loadHeightmapASC(const std::string &filename)
 {
-    this->shader = shader;
-    this->width = width;
-    this->height = height;
-    this->cellSize = cellSize;
+    std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open heightmap file: " << filename << std::endl;
+        return false;
+    }
 
-    // Identity matrix
-    this->model = glm::mat4(1.0f);
+    std::string tag;
+    int ncols = 0, nrows = 0;
+    double xllcorner = 0.0, yllcorner = 0.0;
+    double cellsize = 0.0;
+    double nodata = -9999.0;
 
-    // Initialize tiles
-    this->initVAO();
-    this->initVBO();
-    this->initEBO();
+    file >> tag >> ncols;
+    file >> tag >> nrows;
+    file >> tag >> xllcorner;
+    file >> tag >> yllcorner;
+    file >> tag >> cellsize;
+    file >> tag >> nodata;
 
-    this->createTiles();
+    width = ncols;
+    height = nrows;
+    cellSize = static_cast<float>(cellsize);
+
+    heightData.assign(height, std::vector<float>(width));
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            double h;
+            if (!(file >> h))
+            {
+                std::cerr << "Unexpected end of file while reading height data\n";
+                return false;
+            }
+            if (h == nodata)
+            {
+                h = 0.0;
+            }
+            heightData[row][col] = static_cast<float>(h);
+        }
+    }
+
+    file.close();
+
+    generateMesh();
+    initBuffers();
+
+    return true;
 }
 
-// Helper functions:
-// Clear tiles vector
-// Prepare cube colors
-// Loop over x from 0 to width
-// Compute worldX, worldZ, based on cellSize
-// height = 0 for now, then we adjust later to elevation
-// Position = (worldX, height, worldZ)
-// Size = scaled cube dims
-// Create Cube with shader, position, size, colors
-// Add Cube to tiles vector
-
-void Terrain::createTiles()
+// Build a regular grid mesh out of heightData
+void Terrain::generateMesh()
 {
     vertices.clear();
     indices.clear();
-    // Im confused on this vector? i think i am just missing something
-    vector<color> colors =
-        {
-            // Front top right
-            {1.0f, 0.0f, 0.0f},
-            // Front top left
-            {0.0f, 1.0f, 0.0f},
-            // Front bottom right
-            {0.0f, 0.0f, 1.0f},
-            // Front bottom left
-            {1.0f, 1.0f, 0.0f},
-            // Back top right
-            {1.0f, 0.0f, 1.0f},
-            // Back top left
-            {0.0f, 1.0f, 1.0f},
-            // Back bottom right
-            {0.5f, 0.5f, 0.5f},
-            // Back bottom left
-            {1.0f, 1.0f, 1.0f}};
-    for (int x = 0; x < width; ++x)
+
+    vertices.reserve(static_cast<size_t>(width) * height * 3);
+
+    for (int row = 0; row < height; ++row)
     {
-        for (int z = 0; z < height; ++z)
+        for (int col = 0; col < width; ++col)
         {
-            float worldX = x * cellSize;
-            float worldZ = z * cellSize;
-            // Set to 0 for now to get it running
-            // Will adjust later based on elevation
-            float height = 0.0f;
+            float x = col * cellSize;
+            float z = row * cellSize;
+            float y = heightScale * heightData[row][col];
 
-            /*
-            vertices.push_back(worldX);
-            vertices.push_back(height);
-            vertices.push_back(worldZ);
-            #setup colors for each vertex and can add height data later
-            vertices.push_back(colors[0].red);
-             vertices.push_back(colors[0].green);
-             vertices.push_back(colors[0].blue);
-
-            */
-
-            glm::vec3 pos = glm::vec3(worldX, height, worldZ);
-            // Flat cube
-            glm::vec3 size = glm::vec3(cellSize / 2.0f, cellSize / 10.0f, cellSize / 2.0f);
-
-            Cube cube(this->shader, pos, size, colors);
-            tiles.push_back(cube);
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(z);
         }
     }
-    for (int i = 0; i < height - 1; ++i)
-    {
-        for (j = 0; j < width - 1; ++j)
-        {
-            int topLeft = i * width + j;
-            int topRight = topLeft + 1;
-            int bottomLeft = (i + 1) * width + j;
-            int bottomRight = bottomLeft + 1;
 
-            // First triangle
+    for (int row = 0; row < height - 1; ++row)
+    {
+        for (int col = 0; col < width - 1; ++col)
+        {
+            unsigned int topLeft = row * width + col;
+            unsigned int topRight = topLeft + 1;
+            unsigned int bottomLeft = (row + 1) * width + col;
+            unsigned int bottomRight = bottomLeft + 1;
+
+            // Triangle 1
             indices.push_back(topLeft);
             indices.push_back(bottomLeft);
             indices.push_back(topRight);
 
-            // Second triangle
+            // Triangle 2
             indices.push_back(topRight);
             indices.push_back(bottomLeft);
             indices.push_back(bottomRight);
         }
     }
 }
-void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
 
+// Upload mesh to GPU
+void Terrain::initBuffers()
 {
-    shader.use();
-    shader.setMatrix4("model", this->model);
-    shader.setMatrix4("view", this->view);
-    shader.setMatrix4("projection", this->projection);
+    if (VAO == 0)
+    {
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+    }
 
-    glBlindVertexArray(this->VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER,
+                 static_cast<GLsizeiptr>(vertices.size() * sizeof(float)),
+                 vertices.data(),
+                 GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 static_cast<GLsizeiptr>(indices.size() * sizeof(unsigned int)),
+                 indices.data(),
+                 GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0, // location 0 in your vertex shader
+        3, // x, y, z
+        GL_FLOAT,
+        GL_FALSE,
+        3 * sizeof(float), // stride
+        (void *)0);
+
+    glBindVertexArray(0);
+}
+
+// Draw terrain
+void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
+{
+    if (VAO == 0 || indices.empty())
+    {
+        return;
+    }
+
+    shader.use();
+    shader.setMatrix4("model", model);
+    shader.setMatrix4("view", view);
+    shader.setMatrix4("projection", projection);
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES,
+                   static_cast<GLsizei>(indices.size()),
+                   GL_UNSIGNED_INT,
+                   nullptr);
     glBindVertexArray(0);
 }

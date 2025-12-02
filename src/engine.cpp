@@ -1,35 +1,25 @@
 #include "engine.h"
 
-
 // OUTLINE / TODOS
 // Engine::render()
-  // Clear the screen
-  // Comput view and projection matrices
-  // shader.use()
-  // Call terrain.draw(view, projection)
-  // Swap buffers
+// Clear the screen
+// Comput view and projection matrices
+// shader.use()
+// Call terrain.draw(view, projection)
+// Swap buffers
 
-
-
-const color red(1, 0, 0);
-const color green(0, 1, 0);
-const color blue(0, 0, 1);
-const color yellow(1, 1, 0);
-const color magenta(1, 0, 1);
-const color cyan(0, 1, 1);
-const color white(1, 1, 1);
-const color black(0, 0, 0);
-
-Engine::Engine() : keys(), cameraZ(-3.0f) {
+Engine::Engine() : keys(), cameraZ(-3.0f)
+{
   this->initWindow();
   this->initShaders();
-  this->initShapes();
+  // this->initShapes();
   this->initMatrices();
 }
 
 Engine::~Engine() {}
 
-unsigned int Engine::initWindow(bool debug) {
+unsigned int Engine::initWindow(bool debug)
+{
   // glfw: initialize and configure
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -46,7 +36,8 @@ unsigned int Engine::initWindow(bool debug) {
   glfwMakeContextCurrent(window);
 
   // glad: load all OpenGL function pointers
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+  {
     cout << "Failed to initialize GLAD" << endl;
     return -1;
   }
@@ -61,16 +52,17 @@ unsigned int Engine::initWindow(bool debug) {
   return 0;
 }
 
-void Engine::initShaders() {
+void Engine::initShaders()
+{
   // load shader manager
   shaderManager = ShaderManager();
 
   // Load shader into shader manager and retrieve it
-  cubeShader = this->shaderManager.loadShader("../res/shaders/shape3D.vert",
-                                                "../res/shaders/shape3D.frag",
-                                                nullptr, "shape");
+  // cubeShader = this->shaderManager.loadShader("../res/shaders/shape3D.vert",
+  // "../res/shaders/shape3D.frag",
+  // nullptr, "shape");
 }
-
+/*
 void Engine::initShapes() {
   cubeLeft =
     make_unique<Cube>(cubeShader, vec3(-0.5f, 0.0f, 0.0f),
@@ -79,8 +71,9 @@ void Engine::initShapes() {
 cubeRight = make_unique<Cube>(cubeShader, vec3(0.5f, 0.0f, 0.0f),
                       vec3(0.5f, 0.5f, 0.5f), vector<color>({red, green, blue, yellow, magenta, cyan, white, black}));
 }
-
-void Engine::initMatrices() {
+*/
+void Engine::initMatrices()
+{
   // The view matrix is the camera's position and orientation in the world
   // We start at (0, 0, 3) and look at (0, 0, 0) with the up vector being (0, 1,
   // 0)
@@ -95,69 +88,74 @@ void Engine::initMatrices() {
   modelRight = glm::mat4(1.0f);
 }
 
-void Engine::processInput() {
+void Engine::processInput()
+{
   glfwPollEvents();
 
   // Set keys to true if pressed, false if released
-  for (int key = 0; key < 1024; ++key) {
+  for (int key = 0; key < 1024; ++key)
+  {
     if (glfwGetKey(window, key) == GLFW_PRESS)
       keys[key] = true;
     else if (glfwGetKey(window, key) == GLFW_RELEASE)
       keys[key] = false;
   }
+  /*
+    // Close window if escape key is pressed
+    if (keys[GLFW_KEY_ESCAPE])
+      glfwSetWindowShouldClose(window, true);
+    if (keys[GLFW_KEY_UP]) {
+      cubeLeft->rotateX(-0.01f);
+    }
+    if (keys[GLFW_KEY_DOWN]) {
+      cubeLeft->rotateX(0.01f);
+    }
+    if (keys[GLFW_KEY_RIGHT]) {
+      cubeLeft->rotateY(0.01f);
+    }
+    if (keys[GLFW_KEY_LEFT]) {
+      cubeLeft->rotateY(-0.01f);
+    }
+    if (keys[GLFW_KEY_COMMA]) {
+      cubeLeft->rotateZ(0.01f);
+    }
+    if (keys[GLFW_KEY_PERIOD]) {
+      cubeLeft->rotateZ(-0.01f);
+    }
 
-  // Close window if escape key is pressed
-  if (keys[GLFW_KEY_ESCAPE])
-    glfwSetWindowShouldClose(window, true);
-  if (keys[GLFW_KEY_UP]) {
-    cubeLeft->rotateX(-0.01f);
-  }
-  if (keys[GLFW_KEY_DOWN]) {
-    cubeLeft->rotateX(0.01f);
-  }
-  if (keys[GLFW_KEY_RIGHT]) {
-    cubeLeft->rotateY(0.01f);
-  }
-  if (keys[GLFW_KEY_LEFT]) {
-    cubeLeft->rotateY(-0.01f);
-  }
-  if (keys[GLFW_KEY_COMMA]) {
-    cubeLeft->rotateZ(0.01f);
-  }
-  if (keys[GLFW_KEY_PERIOD]) {
-    cubeLeft->rotateZ(-0.01f);
-  }
+    if (keys[GLFW_KEY_UP]) {
+      cubeRight->rotateX(-0.01f);
+    }
+    if (keys[GLFW_KEY_DOWN]) {
+      cubeRight->rotateX(0.01f);
+    }
+    if (keys[GLFW_KEY_RIGHT]) {
+      cubeRight->rotateY(-0.01f);
+    }
+    if (keys[GLFW_KEY_LEFT]) {
+      cubeRight->rotateY(0.01f);
+    }
+    if (keys[GLFW_KEY_COMMA]) {
+      cubeRight->rotateZ(0.01f);
+    }
+    if (keys[GLFW_KEY_PERIOD]) {
+      cubeRight->rotateZ(-0.01f);
+    }
 
-  if (keys[GLFW_KEY_UP]) {
-    cubeRight->rotateX(-0.01f);
   }
-  if (keys[GLFW_KEY_DOWN]) {
-    cubeRight->rotateX(0.01f);
-  }
-  if (keys[GLFW_KEY_RIGHT]) {
-    cubeRight->rotateY(-0.01f);
-  }
-  if (keys[GLFW_KEY_LEFT]) {
-    cubeRight->rotateY(0.01f);
-  }
-  if (keys[GLFW_KEY_COMMA]) {
-    cubeRight->rotateZ(0.01f);
-  }
-  if (keys[GLFW_KEY_PERIOD]) {
-    cubeRight->rotateZ(-0.01f);
-  }
-
+  */
 }
 
-void Engine::update() {
+void Engine::update()
+{
   // Calculate delta time
   float currentFrame = glfwGetTime();
   deltaTime = currentFrame - lastFrame;
   lastFrame = currentFrame;
-
 }
 
-void Engine::render() {
+void Engine::render()
+{
   // Clear the screen before rendering the frame
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color
   glClear(GL_COLOR_BUFFER_BIT |
@@ -171,7 +169,8 @@ void Engine::render() {
 
   // Move the camera back 3 units to view the cube
   view = glm::translate(view, glm::vec3(0.0f, 0.0f, cameraZ));
-
+}
+/*
   cubeShader.use();
   // Draw cube
   cubeLeft->setUniforms(modelLeft, view, projection);
@@ -181,6 +180,7 @@ void Engine::render() {
   cubeRight->draw(modelRight, view, projection);
 
   glfwSwapBuffers(window);
-}
+
+  */
 
 bool Engine::shouldClose() { return glfwWindowShouldClose(window); }

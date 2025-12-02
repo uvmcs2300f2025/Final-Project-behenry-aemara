@@ -1,7 +1,12 @@
-#ifndef GRAPHICS_ENGINE_H
-#define GRAPHICS_ENGINE_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include "shader/shader.h"
+// #include "map/build/Terrain.h"
+
 #include <iostream>
 #include <memory>
 #include <vector>

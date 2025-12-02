@@ -7,19 +7,16 @@
       ],
       "includePath": [
         "${workspaceFolder}/src",
-        // Headers that FetchContent downloaded into the build tree:
-        "${workspaceFolder}/cmake-build-debug/_deps/glm-src",
-        "${workspaceFolder}/cmake-build-debug/_deps/glfw-src/include",
-        "${workspaceFolder}/cmake-build-debug/_deps/glad-src/include",
-        // (Optional) system/Homebrew headers if you ever use them:
+        // Homebrew headers (this is where GLFW/glfw3.h is for you)
         "/opt/homebrew/include",
-        // Your existing R paths (can be removed if you don't need them):
-        "/Library/Frameworks/R.framework/Resources/include",
-        "/opt/R/arm64/include"
+        // (optional but nice) CMake-fetchcontent deps:
+        "${workspaceFolder}/cmake-build-debug/_deps/glfw-src/include",
+        "${workspaceFolder}/cmake-build-debug/_deps/glm-src",
+        "${workspaceFolder}/cmake-build-debug/_deps/glad-src/include"
       ],
       "compilerPath": "/usr/bin/clang++",
-      "cStandard": "c11",
-      "cppStandard": "c++17",
+      "cStandard": "${default}",
+      "cppStandard": "gnu++17",
       "intelliSenseMode": "macos-clang-arm64"
     }
   ],

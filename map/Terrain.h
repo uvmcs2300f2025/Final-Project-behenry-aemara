@@ -2,70 +2,49 @@
 #define TERRAIN_H
 
 #include "shader/shader.h"
-// #include "shapes/cube.h"
+
 #include <vector>
 #include <string>
+
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
-using std::vector, glm::vec3, glm::mat4;
-
-// OUTLINE / TODOS
-
-// 1. Store a reference to the shader
-// 2. Store terrain dimensions and position
-// 3. Store a vector of Cube objects
-// 4. Build a grid of cubes - flat for now until it works, then add 3D modeling later
-// 5. Draw all cubes using the shader
-
-// Store a reference to the shader
-struct color
-{
-    // RGBY colors but can change later
-    float red;
-    float green;
-    float blue;
-    float yellow;
-};
-
-// Store terrain dimensions and position
+// Simple terrain built from a heightmap (ASC) into a triangle mesh
 class Terrain
 {
 public:
+    // width/height are the number of grid cells; cellSize is world units per cell
     Terrain(Shader &shader, int width, int height, float cellSize);
-    void draw(const glm::mat4 &view, const glm::mat4 &projection) const;
 
-    // loading in asc file
+    // Load ASCII grid (.asc) heightmap and rebuild mesh
     bool loadHeightmapASC(const std::string &filename);
 
+    // Draw terrain with given camera matrices
+    void draw(const glm::mat4 &view, const glm::mat4 &projection) const;
+
 private:
-    Shader shader;
-    // check the notation of this line? unsure if it needs an additional
-    glm::mat4 model;
+    // We store a reference to the shader used to draw this terrain
+    Shader &shader;
+    glm::mat4 model{1.0f};
 
     int width;
     int height;
     float cellSize;
-    // exspect to change this for best effects
-    float heightScale = 1.0f;
+    float heightScale = 1.0f; // vertical exaggeration
 
+    // [row][col] height samples from the ASC file
     std::vector<std::vector<float>> heightData;
+
+    // Mesh data: 3 floats per vertex (x, y, z)
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
 
-    // unsure if this line is needed -> link source from notes HERE
-    unsigned int VAO;
-    unsigned int VBO;
-    unsigned int EBO;
-    // this is the way that i was gonna import our grid
-    void generateMesh();
-    void initVAO();
-    void initVBO();
-    void initEBO();
+    // OpenGL buffer objects
+    unsigned int VAO = 0;
+    unsigned int VBO = 0;
+    unsigned int EBO = 0;
 
-    // glm::mat4 model;
-    // vector<Cube> tiles;
-    // void initTiles();
+    void generateMesh(); // build vertices/indices from heightData
+    void initBuffers();  // upload data to OpenGL buffers
 };
 
 #endif // TERRAIN_H
