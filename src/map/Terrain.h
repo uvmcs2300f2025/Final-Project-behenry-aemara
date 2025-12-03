@@ -7,6 +7,7 @@
 #include <string>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class Terrain
 {
@@ -16,6 +17,7 @@ public:
     bool loadHeightmapASC(const std::string &filename);
 
     void draw(const glm::mat4 &view, const glm::mat4 &projection) const;
+    void setHeightScale(float scale) { cellScale = scale; }
 
 private:
     Shader &shader;
