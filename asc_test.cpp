@@ -5,10 +5,10 @@
 
 int main()
 {
-    std::ifstream file("rastert_dem_241.asc"); // <-- file is in repo root
+    std::ifstream file("vt_data.asc"); // <-- file is in repo root
     if (!file)
     {
-        std::cerr << "Could not open rastert_dem_241.asc\n";
+        std::cerr << "Could not open vt_data.asc\n";
         return 1;
     }
 
