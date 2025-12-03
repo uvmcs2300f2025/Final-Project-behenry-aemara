@@ -81,8 +81,34 @@ _deps/
 # --------------------------
 
 # Ignore huge DEM files
-rastert_dem_241.asc
-*.asc
 *.tif
 *.tiff
 *.dem
+
+
+
+# adding more gitignores otherwise we cannot commit to repo due to large files
+*.dem
+*.asc
+*.grd
+*.hdr
+*.raw
+*.bin
+
+
+*.obj
+*.fbx
+*.stl
+*.gltf
+*.glb
+*.png
+*.jpg
+*.jpeg
+
+
+CMakeUserPresets.json
+cmake-build-*
+
+# ignore data from committing to repo
+# NOTE: i changed the file name because the last name was messy
+vt_data.asc
