@@ -1,4 +1,4 @@
-#include "map/Terrain.h" // adjust path if needed (e.g., "Terrain.h" if in same folder)
+#include "Terrain.h" // adjust path if needed (e.g., "Terrain.h" if in same folder)
 
 #include <fstream>
 #include <iostream>

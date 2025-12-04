@@ -94,16 +94,27 @@ add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
 ## ~ BUILD PROJECT ~
-# Create executable
+#add_executable(FinalProject
+#    src/main.cpp
+#    src/engine.cpp
+    
+#    src/shader/shader.cpp
+#    src/shader/shaderManager.cpp
+
+#    src/shapes/cube.cpp   # remove if you truly deleted cubes
+
+#    src/map/Terrain.cpp   # important for your DEM rendering
+#)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${glad_SOURCE_DIR}/include
-    ${glfw_SOURCE_DIR}/include
-    ${glm_SOURCE_DIR}
-)
+
+#target_include_directories(${PROJECT_NAME} PRIVATE
+#    ${CMAKE_SOURCE_DIR}/src
+#    ${glad_SOURCE_DIR}/include
+#    ${glfw_SOURCE_DIR}/include
+#    ${glm_SOURCE_DIR}
+#)
 
 # Include libraries
 target_link_libraries(${PROJECT_NAME} glfw glm::glm)

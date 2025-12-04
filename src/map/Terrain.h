@@ -1,7 +1,7 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
 
-#include "shader/shader.h"
+#include "../shader/shader.h"
 
 #include <vector>
 #include <string>
