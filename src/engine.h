@@ -20,7 +20,7 @@ using glm::vec3;
 using std::make_unique;
 using std::unique_ptr;
 using std::vector;
-
+class Terrain;
 class Engine
 {
 public:
@@ -37,6 +37,7 @@ public:
 
 private:
   GLFWwindow *window{nullptr};
+  std::unique_ptr<Terrain> terrain;
   const unsigned int width = 800;
   const unsigned int height = 600;
 

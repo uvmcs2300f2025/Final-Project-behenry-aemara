@@ -176,6 +176,7 @@ void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
     shader.setMatrix4("model", model);
     shader.setMatrix4("view", view);
     shader.setMatrix4("projection", projection);
+    shader.setVector3f("uColor", glm::vec3(0.1f, 0.5f, 0.1f));
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,

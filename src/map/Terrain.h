@@ -23,6 +23,7 @@ private:
     int width;
     int height;
     float cellSize;
+    // include in read me
 
     float cellScale = 5.0f; // vertical exaggeration
 

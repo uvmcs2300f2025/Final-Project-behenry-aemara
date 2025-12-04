@@ -1,6 +1,5 @@
 #include "engine.h"
 #include <iostream>
-#include <GLFW/glfw3.h>
 
 int main(int argc, char *argv[])
 {
@@ -17,11 +16,9 @@ int main(int argc, char *argv[])
 
     std::cout << "engine.init() SUCCEEDED, entering loop\n";
 
-    // let Engine own the while(!shouldClose) loop internally
+    // Engine owns the game loop
     engine.run();
 
     std::cout << "program ended normally\n";
-
-    glfwTerminate();
     return 0;
 }
