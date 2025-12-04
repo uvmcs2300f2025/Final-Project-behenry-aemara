@@ -1,25 +1,26 @@
 #include "engine.h"
-#include "map/Terrain.h"
-#include <GLFW/glfw3.h>
-
 #include <iostream>
-
-// OUTLINE / TODOS
-// Create Engine
-// Call engine.run()
-// The Enginer will handle the. window loop and rendering
+#include <GLFW/glfw3.h>
 
 int main(int argc, char *argv[])
 {
+    std::cout << "main started\n";
+
     Engine engine;
 
-    while (!engine.shouldClose())
+    // initialize window, OpenGL, shaders, terrain, etc.
+    if (!engine.init())
     {
-        engine.processInput();
-        engine.update();
-        engine.render();
+        std::cerr << "engine.init() FAILED\n";
+        return -1;
     }
-    // stop program after test
+
+    std::cout << "engine.init() SUCCEEDED, entering loop\n";
+
+    // let Engine own the while(!shouldClose) loop internally
+    engine.run();
+
+    std::cout << "program ended normally\n";
 
     glfwTerminate();
     return 0;

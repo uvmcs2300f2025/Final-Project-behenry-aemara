@@ -7,7 +7,6 @@
 #include <string>
 
 #include <glm/glm.hpp>
-
 class Terrain
 {
 public:

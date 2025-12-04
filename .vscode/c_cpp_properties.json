@@ -1,20 +1,16 @@
 {
   "configurations": [
     {
-      "name": "Mac",
+      "name": "macos-clang-arm64",
       "defines": [
         "NDEBUG"
       ],
       "includePath": [
-        "${workspaceFolder}/src",
-        "/opt/homebrew/include",
-        "${workspaceFolder}/cmake-build-debug/_deps/glfw-src/include",
-        "${workspaceFolder}/cmake-build-debug/_deps/glm-src",
-        "${workspaceFolder}/cmake-build-debug/_deps/glad-src/include"
+        "${workspaceFolder}/**"
       ],
-      "compilerPath": "/usr/bin/clang++",
+      "compilerPath": "/usr/bin/clang",
       "cStandard": "${default}",
-      "cppStandard": "gnu++17",
+      "cppStandard": "${default}",
       "intelliSenseMode": "macos-clang-arm64"
     }
   ],

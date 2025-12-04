@@ -68,51 +68,38 @@ private:
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 
 public:
-  /// @brief Constructor for the Engine class.
-  /// @details Initializes window and shaders.
   Engine();
-
-  /// @brief Destructor for the Engine class.
   ~Engine();
 
-  /// @brief Initializes the GLFW window.
-  /// @return 0 if successful, -1 otherwise.
-  unsigned int initWindow(bool debug = false);
+  bool init();
+  void run();
 
-  /// @brief Loads shaders from files and stores them in the shaderManager.
-  /// @details Renderers are initialized here.
-  void initShaders();
-
-  /// @brief Initializes the shapes to be rendered.
-  void initShapes();
-
-  /// @brief Processes input from the user.
-  /// @details (e.g. keyboard input, mouse input, etc.)
+  bool shouldClose();
   void processInput();
-
-  /// @brief Initializes the model, view, and projection matrices.
-  void initMatrices();
-
-  /// @brief Updates the game state.
-  /// @details (e.g. collision detection, delta time, etc.)
   void update();
-
-  /// @brief Renders the game state.
-  /// @details Displays/renders objects on the screen.
   void render();
 
-  /* deltaTime variables */
-  float deltaTime = 0.0f; // Time between current frame and last frame
-  float lastFrame = 0.0f; // Time of last frame (used to calculate deltaTime)
+private:
+  GLFWwindow *window;
+  int width = 800;
+  int height = 600;
+  float cameraZ;
+  float deltaTime = 0.0f;
+  float lastFrame = 0.0f;
 
-  // -----------------------------------
-  // Getters
-  // -----------------------------------
+  unsigned int initWindow(bool debug = false);
 
-  /// @brief Returns true if the window should close.
-  /// @details (Wrapper for glfwWindowShouldClose()).
-  /// @return true if the window should close
-  /// @return false if the window should not close
+  void initShaders();
+  void initShapes();
+
+  void processInput();
+  void initMatrices();
+
+  void update();
+  void render();
+  float deltaTime = 0.0f;
+  float lastFrame = 0.0f;
+
   bool shouldClose();
 };
 
