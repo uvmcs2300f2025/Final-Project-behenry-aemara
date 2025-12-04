@@ -11,7 +11,10 @@ Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
       model(1.0f),
       width(width),
       height(height),
-      cellSize(cellSize) {}
+      cellSize(cellSize)
+{
+    model = glm::translate(model, glm::vec3(-width * cellSize / 2.0f, 0.0f, -height * cellSize / 2.0f));
+}
 
 // Load an ESRI ASCII grid (.asc) heightmap
 bool Terrain::loadHeightmapASC(const std::string &filename)
@@ -176,12 +179,12 @@ void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
     shader.setMatrix4("model", model);
     shader.setMatrix4("view", view);
     shader.setMatrix4("projection", projection);
-    shader.setVector3f("uColor", glm::vec3(0.1f, 0.5f, 0.1f));
+    shader.setVector3f("uColor", glm::vec3(0.0f, 1.0f, 0.0f));
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,
                    static_cast<GLsizei>(indices.size()),
                    GL_UNSIGNED_INT,
-                   nullptr);
+                   0);
     glBindVertexArray(0);
 }

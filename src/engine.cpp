@@ -2,7 +2,7 @@
 #include <iostream>
 #include "map/Terrain.h"
 
-Engine::Engine() : cameraZ(-3.0f)
+Engine::Engine() : cameraZ(-200.0f)
 {
   // initialize key array
   for (bool &k : keys)
@@ -99,7 +99,7 @@ void Engine::initMatrices()
       glm::radians(45.0f),
       static_cast<float>(width) / static_cast<float>(height),
       0.1f,
-      100.0f);
+      5000.0f);
 
   modelLeft = glm::mat4(1.0f);
   modelRight = glm::mat4(1.0f);
