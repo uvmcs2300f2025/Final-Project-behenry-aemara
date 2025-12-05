@@ -14,6 +14,8 @@
 #include <memory>
 #include <vector>
 
+#include "map/Terrain.h"
+
 using glm::lookAt;
 using glm::mat4;
 using glm::vec3;
@@ -52,6 +54,9 @@ private:
   float cameraZ;
   float deltaTime = 0.0f;
   float lastFrame = 0.0f;
+
+  // Terrain object 
+  unique_ptr<Terrain> terrain;
 
   unsigned int initWindow(bool debug = false);
   void initShaders();

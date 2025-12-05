@@ -114,8 +114,15 @@ void Engine::render()
   view = glm::translate(view, glm::vec3(0.0f, 0.0f, cameraZ));
 
   // later we’ll call terrain.draw(view, projection) here
-
-  // nothing drawn yet → black screen is expected
+  if (terrain)
+  {
+    terrain->draw(view, projection);
+  }
+  else
+  {
+    std::cerr << "Engine::render() - terrain is null, cannot draw terrain\n";
+  }
+   // nothing drawn yet → black screen is expected
 }
 
 bool Engine::shouldClose()
