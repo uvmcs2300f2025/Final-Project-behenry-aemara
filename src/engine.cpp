@@ -11,7 +11,12 @@ Engine::Engine() : cameraZ(-200.0f)
   }
 
   // set up window, shaders, matrices
-  initWindow();
+  if (initWindow() != 0)
+  {
+    std::cerr << "Engine constructor: initWindow failed\n";
+    return;
+  }
+
   initShaders();
   initMatrices();
 }
@@ -29,6 +34,8 @@ Engine::~Engine()
 // create the GLFW window and OpenGL context
 unsigned int Engine::initWindow(bool debug)
 {
+  (void)debug; // unused for now
+
   if (!glfwInit())
   {
     std::cerr << "Failed to initialize GLFW\n";
@@ -80,45 +87,32 @@ unsigned int Engine::initWindow(bool debug)
 void Engine::initShaders()
 {
   shaderManager = ShaderManager();
-  shaderManager.loadShader("/Users/annemara/Desktop/Final-Project-behenry-aemara/res/shaders/shape3D.vert",
-                           "/Users/annemara/Desktop/Final-Project-behenry-aemara/res/shaders/shape3D.frag",
-                           nullptr,
-                           "terrain");
-  // later:
-  // shaderManager.loadShader("terrain", "res/shaders/terrain.vert", "res/shaders/terrain.frag");
+
+  shaderManager.loadShader(
+      "/Users/annemara/Desktop/Final-Project-behenry-aemara/res/shaders/shape3D.vert",
+      "/Users/annemara/Desktop/Final-Project-behenry-aemara/res/shaders/shape3D.frag",
+      nullptr,
+      "terrain");
 }
-/*
+
 void Engine::initMatrices()
 {
-  // camera looking at origin
-  // okay trying to fix the half green and black screen
-  // chnage these values to be higher
-  view = lookAt(vec3(0.0f, 2.0f, 4.0f),
-                vec3(0.0f, 0.0f, 0.0f),
-                vec3(0.0f, 1.0f, 0.0f));
+  // Simple, known-good angled camera that used to work
+  view = glm::lookAt(
+      glm::vec3(0.0f, 60.0f, .1f), // eye position (back and above)
+      glm::vec3(0.0f, 0.0f, 0.0f), // look at the origin
+      glm::vec3(0.0f, 0.0f, -1.0f) // world up
+  );
 
   projection = glm::perspective(
       glm::radians(45.0f),
       static_cast<float>(width) / static_cast<float>(height),
       0.1f,
-      100.0f);
-
-  modelLeft = glm::mat4(1.0f);
-  modelRight = glm::mat4(1.0f);
-}
-*/
-void Engine::initMatrices()
-{
-  // Camera high and back, looking down at the origin
-  view = glm::lookAt(glm::vec3(0.0f, 60.0f, 0.10f), // eye position
-                     glm::vec3(0.0f, 0.0f, 0.0f),   // look at the center of terrain
-                     glm::vec3(0.0f, 0.0f, -1.0f)); // up vector
-
-  projection = glm::perspective(
-      glm::radians(45.0f),
-      static_cast<float>(width) / static_cast<float>(height),
-      0.1f,
-      500.0f);
+      5000.0f // far plane large enough for big DEM
+  );
+  camYaw = 0.0f;
+  camPitch = 45.0f;
+  camRadius = 600.0f;
 }
 
 void Engine::processInput()
@@ -138,6 +132,39 @@ void Engine::processInput()
   {
     glfwSetWindowShouldClose(window, true);
   }
+
+  // -------- NEW: orbit camera controls --------
+  float rotSpeed = 60.0f * deltaTime;   // deg/sec
+  float zoomSpeed = 300.0f * deltaTime; // units/sec
+
+  // Left / Right → spin around VT
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    camYaw -= rotSpeed;
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    camYaw += rotSpeed;
+
+  // Up / Down → tilt camera
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    camPitch += rotSpeed;
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    camPitch -= rotSpeed;
+
+  // Clamp pitch so we don't flip
+  if (camPitch < 10.0f)
+    camPitch = 10.0f; // minimum tilt
+  if (camPitch > 80.0f)
+    camPitch = 80.0f; // maximum tilt
+
+  // Optional: zoom in/out with W/S
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    camRadius -= zoomSpeed;
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    camRadius += zoomSpeed;
+
+  if (camRadius < 200.0f)
+    camRadius = 200.0f; // don't go inside VT
+  if (camRadius > 3000.0f)
+    camRadius = 3000.0f; // don't go to space
 }
 
 void Engine::update()
@@ -146,7 +173,20 @@ void Engine::update()
   deltaTime = currentFrame - lastFrame;
   lastFrame = currentFrame;
 
-  // later: move camera / animate things with deltaTime
+  // Convert angles to radians
+  float yawRad = glm::radians(camYaw);
+  float pitchRad = glm::radians(camPitch);
+
+  // Spherical coordinates → Cartesian (orbit around origin)
+  float x = camRadius * cosf(pitchRad) * sinf(yawRad);
+  float y = camRadius * sinf(pitchRad);
+  float z = camRadius * cosf(pitchRad) * cosf(yawRad);
+
+  // Look at center of terrain (assumed around origin)
+  view = glm::lookAt(
+      glm::vec3(x, y, z),
+      glm::vec3(0.0f, 0.0f, 0.0f),
+      glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void Engine::render()
@@ -156,7 +196,7 @@ void Engine::render()
 
   glEnable(GL_DEPTH_TEST);
 
-  // DEBUG: see the mesh shape
+  // Uncomment to see wireframe
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   if (terrain)
@@ -180,7 +220,10 @@ bool Engine::init()
     std::cerr << "Engine::init() - window is null, initWindow must have failed\n";
     return false;
   }
+
   Shader &terrainShader = shaderManager.getShader("terrain");
+
+  // These initial values are mostly ignored once ASC is loaded
   int gridWidth = 500;
   int gridHeight = 500;
   float cellSize = 1.0f;
@@ -193,6 +236,8 @@ bool Engine::init()
     std::cerr << "Failed to load heightmap ../res/heightmaps/rastert_dem_241.asc\n";
     return false;
   }
+
+  std::cout << "engine.init() SUCCEEDED, entering loop\n";
   return true;
 }
 
