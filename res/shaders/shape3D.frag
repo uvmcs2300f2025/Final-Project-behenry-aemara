@@ -1,35 +1,56 @@
 #version 330 core
 
-in float vHeightNorm;
+in float vHeightNorm;   // 0..1 normalized height
 out vec4 FragColor;
 
 void main()
 {
     float t = clamp(vHeightNorm, 0.0, 1.0);
 
-    // OPTIONAL: treat *very* low normalized heights as “background”
-    // This helps hide the big flat outside-of-VT slab.
-    if (t < 0.01)
+    // --- Hide nodata / padding: treat very low heights as background ---
+    // This should match your glClearColor(0.0, 0.0, 0.2, 1.0);
+    if (t < 0.02)
     {
-        discard;  // let the clear color (navy) show instead
+        FragColor = vec4(0.0, 0.0, 0.2, 1.0);
+        return;
     }
 
-    // simple 3-color gradient: low = green, mid = brown, high = white
-    vec3 lowColor  = vec3(0.10, 0.35, 0.10);  // low elevations (valleys, foothills)
-    vec3 midColor  = vec3(0.60, 0.45, 0.25);  // mid elevations (hills)
-    vec3 highColor = vec3(1.00, 1.00, 1.00);  // high elevations (ridges, peaks)
+    // --- Topographic color ramp: green -> tan -> white ---
 
-    vec3 color;
-    if (t < 0.5)
+    // low elevations: dark-ish green
+    vec3 low  = vec3(0.09, 0.25, 0.12);
+    // mid-low: lighter green
+    vec3 mid1 = vec3(0.28, 0.45, 0.20);
+    // mid-high: tan / rock
+    vec3 mid2 = vec3(0.65, 0.54, 0.32);
+    // high elevations: near-white
+    vec3 high = vec3(0.96, 0.96, 0.96);
+
+    vec3 baseColor;
+    if (t < 0.3)
     {
-        float k = t * 2.0;
-        color = mix(lowColor, midColor, k);
+        float u = smoothstep(0.0, 0.3, t);
+        baseColor = mix(low, mid1, u);
+    }
+    else if (t < 0.6)
+    {
+        float u = smoothstep(0.3, 0.6, t);
+        baseColor = mix(mid1, mid2, u);
     }
     else
     {
-        float k = (t - 0.5) * 2.0;
-        color = mix(midColor, highColor, k);
+        float u = smoothstep(0.6, 1.0, t);
+        baseColor = mix(mid2, high, u);
     }
 
-    FragColor = vec4(color, 1.0);
+    // --- Subtle contour bands for a topo-map feel ---
+    // Adjust 40.0 to change band density
+    float bands = fract(t * 40.0);
+    float line  = smoothstep(0.0, 0.03, min(bands, 1.0 - bands));
+    // line ≈ 0 near band centers, ≈1 near edges
+
+    vec3 contourColor = baseColor * 0.6;  // slightly darker
+    vec3 finalColor   = mix(contourColor, baseColor, line);
+
+    FragColor = vec4(finalColor, 1.0);
 }
