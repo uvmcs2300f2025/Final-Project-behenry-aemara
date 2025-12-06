@@ -18,6 +18,7 @@ Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
 }
 
 // Load an ESRI ASCII grid (.asc) heightmap
+/*
 bool Terrain::loadHeightmapASC(const std::string &filename)
 {
     std::ifstream file(filename);
@@ -88,6 +89,74 @@ bool Terrain::loadHeightmapASC(const std::string &filename)
                            glm::vec3(-width * cellSize / 2.0f,
                                      0.0f,
                                      -height * cellSize / 2.0f));
+    return true;
+}
+*/
+bool Terrain::loadHeightmapASC(const std::string &filename)
+{
+    std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open heightmap file: " << filename << std::endl;
+        return false;
+    }
+
+    std::string tag;
+    int ncols = 0, nrows = 0;
+    double xllcorner = 0.0, yllcorner = 0.0;
+    double cellsize = 0.0;
+    double nodata = -9999.0;
+
+    file >> tag >> ncols;
+    file >> tag >> nrows;
+    file >> tag >> xllcorner;
+    file >> tag >> yllcorner;
+    file >> tag >> cellsize;
+    file >> tag >> nodata;
+
+    width = ncols;
+    height = nrows;
+
+    heightData.assign(height, std::vector<float>(width));
+
+    // RESET min/max for this load
+    minHeight = std::numeric_limits<float>::infinity();
+    maxHeight = -std::numeric_limits<float>::infinity();
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            double h;
+            if (!(file >> h))
+            {
+                std::cerr << "Unexpected end of file while reading height data\n";
+                return false;
+            }
+            if (h == nodata)
+            {
+                h = 0.0;
+            }
+
+            float hf = static_cast<float>(h);
+            heightData[row][col] = hf;
+
+            if (hf < minHeight)
+                minHeight = hf;
+            if (hf > maxHeight)
+                maxHeight = hf;
+        }
+    }
+
+    file.close();
+
+    std::cout << "ASC loaded: " << width << " x " << height << std::endl;
+    std::cout << "minHeight = " << minHeight
+              << " maxHeight = " << maxHeight << std::endl;
+
+    generateMesh();
+    initBuffers();
+
     return true;
 }
 
@@ -255,31 +324,157 @@ void Terrain::generateMesh()
               << " vertices (" << vertices.size() / 3 << " verts, "
               << indices.size() / 3 << " tris)\n";
 }
-*/
+
 void Terrain::generateMesh()
 {
     vertices.clear();
     indices.clear();
 
-    // Simple quad in the middle of clip space
-    // positions: x, y, z in [-0.5, 0.5]
-    vertices = {
-        -0.5f, -0.5f, 0.0f, // 0 bottom-left
-        0.5f, -0.5f, 0.0f,  // 1 bottom-right
-        -0.5f, 0.5f, 0.0f,  // 2 top-left
-        0.5f, 0.5f, 0.0f    // 3 top-right
-    };
+    const int W = 10;
+    const int H = 10;
 
-    indices = {
-        0, 1, 2, // triangle 1
-        1, 3, 2  // triangle 2
-    };
+    meshWidth = W;
+    meshHeight = H;
 
-    meshWidth = 2;
-    meshHeight = 2;
+    // simple wave heightmap
+    for (int r = 0; r < H; r++)
+    {
+        for (int c = 0; c < W; c++)
+        {
+            float x = (c - W / 2) * 0.1f;
+            float z = (r - H / 2) * 0.1f;
 
-    std::cout << "DEBUG quad: verts=" << vertices.size() / 3
+            float y = 0.05f * sinf(c * 0.5f) * cosf(r * 0.5f);
+
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(z);
+        }
+    }
+
+    for (int r = 0; r < H - 1; r++)
+    {
+        for (int c = 0; c < W - 1; c++)
+        {
+            int tl = r * W + c;
+            int tr = tl + 1;
+            int bl = (r + 1) * W + c;
+            int br = bl + 1;
+
+            indices.push_back(tl);
+            indices.push_back(bl);
+            indices.push_back(tr);
+
+            indices.push_back(tr);
+            indices.push_back(bl);
+            indices.push_back(br);
+        }
+    }
+}
+    */
+
+void Terrain::generateMesh()
+{
+    vertices.clear();
+    indices.clear();
+
+    // Safety check
+    if (heightData.empty() || heightData[0].empty())
+    {
+        std::cerr << "generateMesh: no height data\n";
+        return;
+    }
+
+    const int fullH = height;
+    const int fullW = width;
+
+    // Downsample factor – larger = fewer vertices
+    const int sampleStep = 10;
+
+    meshHeight = (fullH + sampleStep - 1) / sampleStep;
+    meshWidth = (fullW + sampleStep - 1) / sampleStep;
+
+    vertices.reserve(static_cast<size_t>(meshWidth) * meshHeight * 3);
+
+    // Horizontal scale so terrain is ~10x10 units in X/Z
+    const float scaleXY = 0.02f;
+
+    // Vertical scale: how tall the whole terrain should be
+    const float heightScale = 20.0f; // tweak this: 1–8 to taste
+
+    // Center around (0,0) in X/Z
+    const float halfW = static_cast<float>(fullW) / 2.0f;
+    const float halfH = static_cast<float>(fullH) / 2.0f;
+
+    // --- NEW: compute local min/max over the sampled points ---
+    float localMin = std::numeric_limits<float>::infinity();
+    float localMax = -std::numeric_limits<float>::infinity();
+
+    for (int row = 0; row < fullH; row += sampleStep)
+    {
+        for (int col = 0; col < fullW; col += sampleStep)
+        {
+            float h = heightData[row][col];
+            if (h < localMin)
+                localMin = h;
+            if (h > localMax)
+                localMax = h;
+        }
+    }
+
+    float range = localMax - localMin;
+    if (range <= 0.0001f)
+        range = 1.0f; // avoid divide-by-zero
+
+    // --- Build the vertex array using normalized heights ---
+    for (int row = 0; row < fullH; row += sampleStep)
+    {
+        for (int col = 0; col < fullW; col += sampleStep)
+        {
+            // X/Z coordinates, centered
+            float x = (static_cast<float>(col) - halfW) * scaleXY;
+            float z = (static_cast<float>(row) - halfH) * scaleXY;
+
+            // Height from DEM
+            float h = heightData[row][col];
+
+            // Normalize: t in [0,1], then shift to [-0.5,0.5]
+            float t = (h - localMin) / range;
+            float y = heightScale * (t - 0.5f);
+
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(z);
+        }
+    }
+
+    // Build index buffer (two triangles per quad)
+    for (int r = 0; r < meshHeight - 1; ++r)
+    {
+        for (int c = 0; c < meshWidth - 1; ++c)
+        {
+            int tl = r * meshWidth + c;
+            int tr = tl + 1;
+            int bl = (r + 1) * meshWidth + c;
+            int br = bl + 1;
+
+            // Triangle 1
+            indices.push_back(tl);
+            indices.push_back(bl);
+            indices.push_back(tr);
+
+            // Triangle 2
+            indices.push_back(tr);
+            indices.push_back(bl);
+            indices.push_back(br);
+        }
+    }
+
+    std::cout << "Mesh (ASC): " << meshWidth << " x " << meshHeight
+              << " verts=" << vertices.size() / 3
               << " tris=" << indices.size() / 3 << std::endl;
+    std::cout << "Local min/max used in mesh: " << localMin
+              << " / " << localMax << std::endl;
 }
 
 // Upload mesh to GPU
@@ -344,15 +539,14 @@ void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
     glBindVertexArray(0);
 }
 */
-void Terrain::draw(const glm::mat4 &, const glm::mat4 &) const
+void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
 {
-    std::cout << "Drawing terrain: VAO=" << VAO
-              << " indices=" << indices.size() << std::endl;
+    shader.use();
 
-    if (VAO == 0 || indices.empty())
-        return;
-
-    shader.use(); // uses the simple red shader we just wrote
+    glm::mat4 I(1.0f);
+    shader.setMatrix4("model", I);
+    shader.setMatrix4("view", view);
+    shader.setMatrix4("projection", projection);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,

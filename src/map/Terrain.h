@@ -4,6 +4,7 @@
 #include "../shader/shader.h"
 
 #include <vector>
+#include <limits>
 #include <string>
 
 #include <glm/glm.hpp>
@@ -39,6 +40,8 @@ private:
     // Mesh data: 3 floats per vertex (x, y, z)
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
+    float minHeight = std::numeric_limits<float>::infinity();
+    float maxHeight = -std::numeric_limits<float>::infinity();
 
     // OpenGL buffer objects
     unsigned int VAO = 0;

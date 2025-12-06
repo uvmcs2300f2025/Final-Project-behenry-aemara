@@ -109,16 +109,16 @@ void Engine::initMatrices()
 */
 void Engine::initMatrices()
 {
-  // Camera high and far, looking at the origin where we centered the terrain
-  view = glm::lookAt(glm::vec3(0.0f, 150.0f, 200.0f),
-                     glm::vec3(0.0f, 0.0f, 0.0f),
-                     glm::vec3(0.0f, 1.0f, 0.0f));
+  // Camera high and back, looking down at the origin
+  view = glm::lookAt(glm::vec3(0.0f, 10.0f, 25.0f), // eye position
+                     glm::vec3(0.0f, 0.0f, 0.0f),   // look at the center of terrain
+                     glm::vec3(0.0f, 1.0f, 0.0f));  // up vector
 
   projection = glm::perspective(
       glm::radians(45.0f),
       static_cast<float>(width) / static_cast<float>(height),
       0.1f,
-      1000.0f);
+      5000.0f);
 }
 
 void Engine::processInput()
@@ -153,23 +153,18 @@ void Engine::render()
 {
   glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  // commented the line below to try and mitigate the green half screen box thing
 
   glEnable(GL_DEPTH_TEST);
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  //  reset view each frame and move camera back
-  //  view = glm::mat4(1.0f);
-  //  view = glm::translate(view, glm::vec3(0.0f, 0.0f, cameraZ));
+
+  // DEBUG: see the mesh shape
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
   if (terrain)
   {
     terrain->draw(view, projection);
   }
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  // later:
-  // auto &shader = shaderManager.getShader("terrain");
-  // terrain.draw(view, projectison);
 
-  // right now, we draw nothing → just a black window
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 bool Engine::shouldClose()
