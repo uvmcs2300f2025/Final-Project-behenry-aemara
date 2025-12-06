@@ -135,7 +135,7 @@ void Engine::processInput()
 
   // -------- NEW: orbit camera controls --------
   float rotSpeed = 60.0f * deltaTime;   // deg/sec
-  float zoomSpeed = 300.0f * deltaTime; // units/sec
+  float zoomSpeed = 150.0f * deltaTime; // units/sec
 
   // Left / Right → spin around VT
   if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
@@ -161,8 +161,8 @@ void Engine::processInput()
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     camRadius += zoomSpeed;
 
-  if (camRadius < 200.0f)
-    camRadius = 200.0f; // don't go inside VT
+  if (camRadius < 50.0f)
+    camRadius = 50.0f; // don't go inside VT
   if (camRadius > 3000.0f)
     camRadius = 3000.0f; // don't go to space
 }
