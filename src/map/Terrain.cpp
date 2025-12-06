@@ -43,7 +43,11 @@ bool Terrain::loadHeightmapASC(const std::string &filename)
 
     width = ncols;
     height = nrows;
-    cellSize = static_cast<float>(cellsize);
+    // okay im gonna see if making this one helps my map render
+
+    // cellSize = static_cast<float>(cellsize);
+    cellSize = .5f;
+    // making it mini to see if maybe its like a scaling issue
 
     heightData.assign(height, std::vector<float>(width));
 
@@ -78,7 +82,12 @@ bool Terrain::loadHeightmapASC(const std::string &filename)
               << heightData[nrows / 2][ncols / 2] << std::endl;
     std::cout << "  heightData[nrows-1][ncols-1] = "
               << heightData[nrows - 1][ncols - 1] << std::endl;
-
+    // centering the terrain model  ( trying to fig out why no state)
+    model = glm::mat4(1.0f);
+    model = glm::translate(model,
+                           glm::vec3(-width * cellSize / 2.0f,
+                                     0.0f,
+                                     -height * cellSize / 2.0f));
     return true;
 }
 
