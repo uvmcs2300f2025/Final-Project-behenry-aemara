@@ -109,7 +109,7 @@ void Terrain::generateMesh()
     const float scaleXY = 0.005f;
 
     // Vertical scale: how tall the whole terrain should be
-    const float heightScale = 15.0f; // tweak this: 1–8 to taste
+    const float heightScale = 5.0f; // tweak this: 1–8 to taste
 
     // Center around (0,0) in X/Z
     const float halfW = static_cast<float>(fullW) / 2.0f;
@@ -222,32 +222,6 @@ void Terrain::initBuffers()
     glBindVertexArray(0);
 }
 
-// Draw terrain
-/*
-void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
-{
-    std::cout << "Drawing terrain: VAO=" << VAO
-              << " indices=" << indices.size() << std::endl;
-
-    if (VAO == 0 || indices.empty())
-    {
-        return;
-    }
-
-    shader.use();
-    shader.setMatrix4("model", model);
-    shader.setMatrix4("view", view);
-    shader.setMatrix4("projection", projection);
-    shader.setVector3f("uColor", glm::vec3(0.0f, 1.0f, 0.0f));
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES,
-                   static_cast<GLsizei>(indices.size()),
-                   GL_UNSIGNED_INT,
-                   0);
-    glBindVertexArray(0);
-}
-*/
 void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
 {
     shader.use();

@@ -30,9 +30,9 @@ private:
     ////gonna drop it down to .5 and see if that helps
     //  when i just chnaged this it made no dif
     /// GOING to move the amera placenet higher and see if that chnages things
-    float cellScale = .02f;    // vertical exaggeration
-    float heightScale = 15.0f; // or whatever you’re using
-    float xyScale = 0.005f;    // if you want this as a member too
+    float cellScale = .02f;   // vertical exaggeration
+    float heightScale = 5.0f; // or whatever you’re using
+    float xyScale = 0.005f;   // if you want this as a member too
 
     int meshWidth = 0;
     int meshHeight = 0;
