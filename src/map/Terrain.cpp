@@ -13,7 +13,8 @@ Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
       height(height),
       cellSize(cellSize)
 {
-    model = glm::translate(model, glm::vec3(-width * cellSize / 2.0f, 0.0f, -height * cellSize / 2.0f));
+    // i commented this out to try and figure out my green line
+    // model = glm::translate(model, glm::vec3(-width * cellSize / 2.0f, 0.0f, -height * cellSize / 2.0f));
 }
 
 // Load an ESRI ASCII grid (.asc) heightmap
@@ -28,6 +29,7 @@ bool Terrain::loadHeightmapASC(const std::string &filename)
 
     std::string tag;
     int ncols = 0, nrows = 0;
+
     double xllcorner = 0.0, yllcorner = 0.0;
     double cellsize = 0.0;
     double nodata = -9999.0;
