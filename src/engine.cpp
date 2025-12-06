@@ -137,7 +137,8 @@ void Engine::render()
 {
   glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // commented the line below to try and mitigate the green half screen box thing
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   // reset view each frame and move camera back
   view = glm::mat4(1.0f);
   // view = glm::translate(view, glm::vec3(0.0f, 0.0f, cameraZ));
