@@ -389,7 +389,7 @@ void Terrain::generateMesh()
     const int fullW = width;
 
     // Downsample factor – larger = fewer vertices
-    const int sampleStep = 10;
+    const int sampleStep = 20;
 
     meshHeight = (fullH + sampleStep - 1) / sampleStep;
     meshWidth = (fullW + sampleStep - 1) / sampleStep;
@@ -397,10 +397,10 @@ void Terrain::generateMesh()
     vertices.reserve(static_cast<size_t>(meshWidth) * meshHeight * 3);
 
     // Horizontal scale so terrain is ~10x10 units in X/Z
-    const float scaleXY = 0.02f;
+    const float scaleXY = 0.005f;
 
     // Vertical scale: how tall the whole terrain should be
-    const float heightScale = 20.0f; // tweak this: 1–8 to taste
+    const float heightScale = 15.0f; // tweak this: 1–8 to taste
 
     // Center around (0,0) in X/Z
     const float halfW = static_cast<float>(fullW) / 2.0f;
@@ -547,6 +547,7 @@ void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
     shader.setMatrix4("model", I);
     shader.setMatrix4("view", view);
     shader.setMatrix4("projection", projection);
+    shader.setFloat("uHeightScale", heightScale);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,

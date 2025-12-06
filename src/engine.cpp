@@ -110,15 +110,15 @@ void Engine::initMatrices()
 void Engine::initMatrices()
 {
   // Camera high and back, looking down at the origin
-  view = glm::lookAt(glm::vec3(0.0f, 10.0f, 25.0f), // eye position
+  view = glm::lookAt(glm::vec3(0.0f, 60.0f, 0.10f), // eye position
                      glm::vec3(0.0f, 0.0f, 0.0f),   // look at the center of terrain
-                     glm::vec3(0.0f, 1.0f, 0.0f));  // up vector
+                     glm::vec3(0.0f, 0.0f, -1.0f)); // up vector
 
   projection = glm::perspective(
       glm::radians(45.0f),
       static_cast<float>(width) / static_cast<float>(height),
       0.1f,
-      5000.0f);
+      500.0f);
 }
 
 void Engine::processInput()
@@ -157,14 +157,14 @@ void Engine::render()
   glEnable(GL_DEPTH_TEST);
 
   // DEBUG: see the mesh shape
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   if (terrain)
   {
     terrain->draw(view, projection);
   }
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 bool Engine::shouldClose()
