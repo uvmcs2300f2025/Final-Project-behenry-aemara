@@ -24,8 +24,12 @@ private:
     int height;
     float cellSize;
     // include in read me
-
-    float cellScale = 5.0f; // vertical exaggeration
+    /// okay so cell scale is vertical exaggeration,
+    /// and the split screen came when this value was 5
+    ////gonna drop it down to .5 and see if that helps
+    //  when i just chnaged this it made no dif
+    /// GOING to move the amera placenet higher and see if that chnages things
+    float cellScale = .02f; // vertical exaggeration
 
     int meshWidth = 0;
     int meshHeight = 0;

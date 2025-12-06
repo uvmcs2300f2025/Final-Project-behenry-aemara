@@ -92,6 +92,7 @@ bool Terrain::loadHeightmapASC(const std::string &filename)
 }
 
 // Build a regular grid mesh out of heightData
+/*
 void Terrain::generateMesh()
 {
     vertices.clear();
@@ -142,6 +143,145 @@ void Terrain::generateMesh()
               << indices.size() / 3 << " tris)\n";
 }
 
+void Terrain::generateMesh()
+{
+    vertices.clear();
+    indices.clear();
+
+    const int sampleStep = 10; // keep this if it worked for you
+
+    meshHeight = (height + sampleStep - 1) / sampleStep;
+    meshWidth = (width + sampleStep - 1) / sampleStep;
+
+    vertices.reserve(static_cast<size_t>(meshWidth) * meshHeight * 3);
+
+    // scale factors so terrain is only ~10 units wide instead of 1000s
+    const float scaleXY = 0.01f; // 1% of index
+    const float halfW = static_cast<float>(width) / 2.0f;
+    const float halfH = static_cast<float>(height) / 2.0f;
+
+    for (int row = 0; row < height; row += sampleStep)
+    {
+        for (int col = 0; col < width; col += sampleStep)
+        {
+            // center around (0,0)
+            float x = (static_cast<float>(col) - halfW) * scaleXY;
+            float z = (static_cast<float>(row) - halfH) * scaleXY;
+            float y = cellScale * heightData[row][col];
+
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(z);
+        }
+    }
+
+    for (int row = 0; row < meshHeight - 1; ++row)
+    {
+        for (int col = 0; col < meshWidth - 1; ++col)
+        {
+            unsigned int topLeft = row * meshWidth + col;
+            unsigned int topRight = topLeft + 1;
+            unsigned int bottomLeft = (row + 1) * meshWidth + col;
+            unsigned int bottomRight = bottomLeft + 1;
+
+            // Triangle 1
+            indices.push_back(topLeft);
+            indices.push_back(bottomLeft);
+            indices.push_back(topRight);
+
+            // Triangle 2
+            indices.push_back(topRight);
+            indices.push_back(bottomLeft);
+            indices.push_back(bottomRight);
+        }
+    }
+
+    std::cout << "Mesh: " << meshWidth << " x " << meshHeight
+              << " vertices (" << vertices.size() / 3 << " verts, "
+              << indices.size() / 3 << " tris)\n";
+}
+
+void Terrain::generateMesh()
+{
+    vertices.clear();
+    indices.clear();
+
+    const int sampleStep = 10;
+
+    meshHeight = (height + sampleStep - 1) / sampleStep;
+    meshWidth = (width + sampleStep - 1) / sampleStep;
+
+    vertices.reserve(static_cast<size_t>(meshWidth) * meshHeight * 3);
+
+    // Make terrain about 100x100 units wide and centered at origin
+    const float scaleXY = 0.1f; // bigger than before
+    const float halfW = static_cast<float>(width) / 2.0f;
+    const float halfH = static_cast<float>(height) / 2.0f;
+
+    for (int row = 0; row < height; row += sampleStep)
+    {
+        for (int col = 0; col < width; col += sampleStep)
+        {
+            float x = (static_cast<float>(col) - halfW) * scaleXY;
+            float z = (static_cast<float>(row) - halfH) * scaleXY;
+            float y = cellScale * heightData[row][col];
+
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(z);
+        }
+    }
+
+    for (int row = 0; row < meshHeight - 1; ++row)
+    {
+        for (int col = 0; col < meshWidth - 1; ++col)
+        {
+            unsigned int topLeft = row * meshWidth + col;
+            unsigned int topRight = topLeft + 1;
+            unsigned int bottomLeft = (row + 1) * meshWidth + col;
+            unsigned int bottomRight = bottomLeft + 1;
+
+            indices.push_back(topLeft);
+            indices.push_back(bottomLeft);
+            indices.push_back(topRight);
+
+            indices.push_back(topRight);
+            indices.push_back(bottomLeft);
+            indices.push_back(bottomRight);
+        }
+    }
+
+    std::cout << "Mesh: " << meshWidth << " x " << meshHeight
+              << " vertices (" << vertices.size() / 3 << " verts, "
+              << indices.size() / 3 << " tris)\n";
+}
+*/
+void Terrain::generateMesh()
+{
+    vertices.clear();
+    indices.clear();
+
+    // Simple quad in the middle of clip space
+    // positions: x, y, z in [-0.5, 0.5]
+    vertices = {
+        -0.5f, -0.5f, 0.0f, // 0 bottom-left
+        0.5f, -0.5f, 0.0f,  // 1 bottom-right
+        -0.5f, 0.5f, 0.0f,  // 2 top-left
+        0.5f, 0.5f, 0.0f    // 3 top-right
+    };
+
+    indices = {
+        0, 1, 2, // triangle 1
+        1, 3, 2  // triangle 2
+    };
+
+    meshWidth = 2;
+    meshHeight = 2;
+
+    std::cout << "DEBUG quad: verts=" << vertices.size() / 3
+              << " tris=" << indices.size() / 3 << std::endl;
+}
+
 // Upload mesh to GPU
 void Terrain::initBuffers()
 {
@@ -179,8 +319,12 @@ void Terrain::initBuffers()
 }
 
 // Draw terrain
+/*
 void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
 {
+    std::cout << "Drawing terrain: VAO=" << VAO
+              << " indices=" << indices.size() << std::endl;
+
     if (VAO == 0 || indices.empty())
     {
         return;
@@ -191,6 +335,24 @@ void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
     shader.setMatrix4("view", view);
     shader.setMatrix4("projection", projection);
     shader.setVector3f("uColor", glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES,
+                   static_cast<GLsizei>(indices.size()),
+                   GL_UNSIGNED_INT,
+                   0);
+    glBindVertexArray(0);
+}
+*/
+void Terrain::draw(const glm::mat4 &, const glm::mat4 &) const
+{
+    std::cout << "Drawing terrain: VAO=" << VAO
+              << " indices=" << indices.size() << std::endl;
+
+    if (VAO == 0 || indices.empty())
+        return;
+
+    shader.use(); // uses the simple red shader we just wrote
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,
