@@ -134,8 +134,8 @@ void Engine::processInput()
   }
 
   // -------- NEW: orbit camera controls --------
-  float rotSpeed = 60.0f * deltaTime;   // deg/sec
-  float zoomSpeed = 150.0f * deltaTime; // units/sec
+  float rotSpeed = 150.0f * deltaTime;  // deg/sec
+  float zoomSpeed = 250.0f * deltaTime; // units/sec
 
   // Left / Right → spin around VT
   if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
