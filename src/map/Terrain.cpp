@@ -96,6 +96,8 @@ void Terrain::generateMesh()
 
     const int fullH = height;
     const int fullW = width;
+    // Horizontal scale so terrain is ~10x10 units in X/Z
+    xyScale = 0.005f;
 
     // Downsample factor – larger = fewer vertices
     const int sampleStep = 20;
@@ -106,7 +108,6 @@ void Terrain::generateMesh()
     vertices.reserve(static_cast<size_t>(meshWidth) * meshHeight * 3);
 
     // Horizontal scale so terrain is ~10x10 units in X/Z
-    const float scaleXY = 0.005f;
 
     // Vertical scale: how tall the whole terrain should be
     const float heightScale = 5.0f; // tweak this: 1–8 to taste
@@ -141,8 +142,8 @@ void Terrain::generateMesh()
         for (int col = 0; col < fullW; col += sampleStep)
         {
             // X/Z coordinates, centered
-            float x = (static_cast<float>(col) - halfW) * scaleXY;
-            float z = (static_cast<float>(row) - halfH) * scaleXY;
+            float x = (static_cast<float>(col) - halfW) * xyScale;
+            float z = (static_cast<float>(row) - halfH) * xyScale;
 
             // Height from DEM
             float h = heightData[row][col];
@@ -238,4 +239,27 @@ void Terrain::draw(const glm::mat4 &view, const glm::mat4 &projection) const
                    GL_UNSIGNED_INT,
                    0);
     glBindVertexArray(0);
+}
+bool Terrain::worldToHeight(const glm::vec3 &worldPos, float &outHeight) const
+{
+    if (heightData.empty() || heightData[0].empty())
+        return false;
+
+    float halfW = static_cast<float>(width) / 2.0f;
+    float halfH = static_cast<float>(height) / 2.0f;
+
+    // invert how we built the mesh:
+    // x = (col - halfW) * xyScale  -> col = x/xyScale + halfW
+    // z = (row - halfH) * xyScale  -> row = z/xyScale + halfH
+    float colF = worldPos.x / xyScale + halfW;
+    float rowF = worldPos.z / xyScale + halfH;
+
+    int col = static_cast<int>(std::round(colF));
+    int row = static_cast<int>(std::round(rowF));
+
+    if (row < 0 || row >= height || col < 0 || col >= width)
+        return false;
+
+    outHeight = heightData[row][col];
+    return true;
 }

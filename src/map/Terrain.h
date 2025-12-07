@@ -12,6 +12,7 @@ class Terrain
 {
 public:
     Terrain(Shader &shader, int width, int height, float cellSize);
+    bool worldToHeight(const glm::vec3 &worldPos, float &outHeight) const;
 
     bool loadHeightmapASC(const std::string &filename);
 
@@ -20,6 +21,7 @@ public:
 private:
     Shader &shader;
     glm::mat4 model{1.0f};
+    float xyScale = 0.005f; // must match the horizontal scale you use in generateMesh
 
     int width;
     int height;
@@ -32,7 +34,7 @@ private:
     /// GOING to move the amera placenet higher and see if that chnages things
     float cellScale = .02f;   // vertical exaggeration
     float heightScale = 5.0f; // or whatever you’re using
-    float xyScale = 0.005f;   // if you want this as a member too
+                              // float xyScale = 0.005f;   // if you want this as a member too
 
     int meshWidth = 0;
     int meshHeight = 0;

@@ -1,6 +1,8 @@
 #include "engine.h"
 #include <iostream>
 #include "map/Terrain.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 Engine::Engine() : cameraZ(-200.0f)
 {
@@ -31,6 +33,7 @@ Engine::~Engine()
   glfwTerminate();
 }
 
+// create the GLFW window and OpenGL context
 unsigned int Engine::initWindow(bool debug)
 {
   (void)debug; // unused for now
@@ -80,17 +83,18 @@ unsigned int Engine::initWindow(bool debug)
   // vsync on
   glfwSwapInterval(1);
 
-  // --- NEW: mouse tracking setup ---
+  // --- mouse tracking setup ---
   glfwSetWindowUserPointer(window, this);
-  glfwSetCursorPosCallback(window,
-                           [](GLFWwindow *win, double xpos, double ypos)
-                           {
-                             Engine *eng = static_cast<Engine *>(glfwGetWindowUserPointer(win));
-                             if (eng)
-                             {
-                               eng->onMouseMove(xpos, ypos);
-                             }
-                           });
+  glfwSetCursorPosCallback(
+      window,
+      [](GLFWwindow *win, double xpos, double ypos)
+      {
+        Engine *eng = static_cast<Engine *>(glfwGetWindowUserPointer(win));
+        if (eng)
+        {
+          eng->onMouseMove(xpos, ypos);
+        }
+      });
 
   return 0;
 }
@@ -98,7 +102,6 @@ void Engine::onMouseMove(double xpos, double ypos)
 {
   mouseX = xpos;
   mouseY = ypos;
-  // later we’ll use this in updateHoverElevation()
 }
 
 void Engine::initShaders()
@@ -205,6 +208,55 @@ void Engine::update()
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(0.0f, 1.0f, 0.0f));
 }
+void Engine::updateHoverElevation()
+{
+  if (!terrain || !window)
+    return;
+
+  hoverInfo.valid = false;
+
+  int mx = static_cast<int>(mouseX);
+  int my = static_cast<int>(mouseY);
+
+  // OpenGL origin = bottom-left, GLFW mouse origin = top-left
+  int readY = static_cast<int>(height - my - 1);
+
+  if (mx < 0 || mx >= static_cast<int>(width) ||
+      readY < 0 || readY >= static_cast<int>(height))
+  {
+    return;
+  }
+
+  // 1) Read depth under the mouse
+  float depth = 1.0f;
+  glReadPixels(mx, readY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+
+  // depth == 1.0 → nothing drawn there (background)
+  if (depth == 1.0f)
+    return;
+
+  // 2) Unproject to world space
+  glm::vec3 winCoord(mouseX, readY, depth);
+  glm::vec4 viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
+
+  glm::mat4 model(1.0f); // terrain uses identity model
+  glm::mat4 mv = view * model;
+
+  glm::vec3 worldPos = glm::unProject(winCoord, mv, projection, viewport);
+
+  // 3) Map worldPos → DEM height
+  float elev = 0.0f;
+  if (terrain->worldToHeight(worldPos, elev))
+  {
+    hoverInfo.valid = true;
+    hoverInfo.worldX = worldPos.x;
+    hoverInfo.worldZ = worldPos.z;
+    hoverInfo.elevation = elev;
+
+    // For now: spam console so we see it works
+    std::cout << "Hover elevation: " << elev << std::endl;
+  }
+}
 
 void Engine::render()
 {
@@ -220,6 +272,7 @@ void Engine::render()
   {
     terrain->draw(view, projection);
   }
+  updateHoverElevation();
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
