@@ -265,7 +265,7 @@ void Engine::updateHoverElevation()
 
     // --- Integrated "bubble": show in window title ---
     std::ostringstream title;
-    title << "Final Project  |  Elevation: " << static_cast<int>(elev) << " m";
+    title << " Scaled Elevation Model of VT  |  Elevation: " << static_cast<int>(elev) << " m";
     glfwSetWindowTitle(window, title.str().c_str());
   }
 }
