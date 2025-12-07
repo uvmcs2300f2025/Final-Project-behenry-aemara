@@ -1,55 +1,46 @@
 #version 330 core
 
-in float vHeightNorm;   // 0..1 normalized height from vertex shader
+in float vHeightNorm;   // normalized height 0..1
 out vec4 FragColor;
+
+vec3 topoColor(int band)
+{
+    if (band == 0) return vec3(0.85, 0.93, 0.98);
+    if (band == 1) return vec3(0.78, 0.90, 0.80);
+    if (band == 2) return vec3(0.65, 0.84, 0.70);
+    if (band == 3) return vec3(0.90, 0.86, 0.70);
+    if (band == 4) return vec3(0.90, 0.78, 0.60);
+    if (band == 5) return vec3(0.85, 0.70, 0.70);
+    if (band == 6) return vec3(0.80, 0.80, 0.84);
+    return            vec3(0.96, 0.96, 0.98);
+}
 
 void main()
 {
     float t = clamp(vHeightNorm, 0.0, 1.0);
 
-    // --- 0. Hide nodata / padding (very low heights) ---
-    vec3 bgColor = vec3(0.0, 0.0, 0.2);  // must match glClearColor
-    if (t < 0.015)
-    {
-        FragColor = vec4(bgColor, 1.0);
-        return;
-    }
+    // *** Treat very-low heights as "no data" and don't draw them ***
+    // tweak 0.02–0.05 depending on how much of the edge you want gone
 
-    // --- 1. Quantize into N discrete elevation bands ---
-    const int NUM_BANDS = 8;
 
-    // Height band index: 0 .. NUM_BANDS-1
-    int bandIndex = int(floor(t * float(NUM_BANDS)));
-    if (bandIndex >= NUM_BANDS)
-        bandIndex = NUM_BANDS - 1;
+// Hide only cells whose normalized height is *really* zero
+// (i.e., nodata that we turned into 0 in C++).
+    if (t <= 0.0001)
+        discard;
 
-    // --- 2. Define a cute topo palette (low → high) ---
+    // --- quantize into 8 bands ---
+    float bands  = 8.0;
+    float scaled = t * bands;
+    int   band   = int(floor(scaled));
+    band = clamp(band, 0, 7);
 
-    // Topographic palette: valley greens → hills → rock/tan → snowy peaks
-    const vec3 topoColors[NUM_BANDS] = vec3[](
-        vec3(0.76, 0.93, 0.80),  // 0: soft mint green (lowest valleys)
-        vec3(0.61, 0.85, 0.66),  // 1: light grassy green
-        vec3(0.47, 0.74, 0.55),  // 2: medium green
-        vec3(0.80, 0.86, 0.60),  // 3: yellow-green transition
-        vec3(0.89, 0.83, 0.60),  // 4: warm tan
-        vec3(0.80, 0.72, 0.56),  // 5: light brown / rock
-        vec3(0.85, 0.85, 0.85),  // 6: light gray / high rock
-        vec3(0.98, 0.97, 0.98)   // 7: almost white snowcaps
-    );
+    vec3 baseColor = topoColor(band);
 
-    vec3 baseColor = topoColors[bandIndex];
+    float bandPos = fract(scaled);
+    float contour = smoothstep(0.0, 0.15, bandPos) *
+                    (1.0 - smoothstep(0.85, 1.0, bandPos));
+    float shade = mix(0.90, 1.05, contour);
 
-    // --- 3. OPTIONAL: subtle band edges to emphasize "layers" ---
-    // This just darkens right at the border between bands.
-    float bandPos = t * float(NUM_BANDS);    // 0..NUM_BANDS
-    float fracPos = fract(bandPos);          // position within current band [0,1]
-    float edge = min(fracPos, 1.0 - fracPos);
-
-    // lineStrength ≈1 near band edges, ≈0 in middle of band.
-    float lineStrength = 1.0 - smoothstep(0.0, 0.08, edge);
-
-    vec3 edgeColor = baseColor * 0.75;       // slightly darker at edges
-    vec3 finalColor = mix(baseColor, edgeColor, lineStrength * 0.6);
-
+    vec3 finalColor = baseColor * shade;
     FragColor = vec4(finalColor, 1.0);
 }

@@ -186,8 +186,8 @@ void Engine::processInput()
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     camRadius += zoomSpeed;
 
-  if (camRadius < 50.0f)
-    camRadius = 50.0f; // don't go inside VT
+  if (camRadius < 25.0f)
+    camRadius = 25.0f; // don't go inside VT
   if (camRadius > 3000.0f)
     camRadius = 3000.0f; // don't go to space
 }
