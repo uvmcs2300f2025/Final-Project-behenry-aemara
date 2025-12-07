@@ -31,7 +31,6 @@ Engine::~Engine()
   glfwTerminate();
 }
 
-// create the GLFW window and OpenGL context
 unsigned int Engine::initWindow(bool debug)
 {
   (void)debug; // unused for now
@@ -81,7 +80,25 @@ unsigned int Engine::initWindow(bool debug)
   // vsync on
   glfwSwapInterval(1);
 
+  // --- NEW: mouse tracking setup ---
+  glfwSetWindowUserPointer(window, this);
+  glfwSetCursorPosCallback(window,
+                           [](GLFWwindow *win, double xpos, double ypos)
+                           {
+                             Engine *eng = static_cast<Engine *>(glfwGetWindowUserPointer(win));
+                             if (eng)
+                             {
+                               eng->onMouseMove(xpos, ypos);
+                             }
+                           });
+
   return 0;
+}
+void Engine::onMouseMove(double xpos, double ypos)
+{
+  mouseX = xpos;
+  mouseY = ypos;
+  // later we’ll use this in updateHoverElevation()
 }
 
 void Engine::initShaders()

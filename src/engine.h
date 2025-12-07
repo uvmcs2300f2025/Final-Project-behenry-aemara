@@ -22,6 +22,9 @@ public:
   Engine();
   ~Engine();
 
+  // this is for the hover function
+  void onMouseMove(double xpos, double ypos);
+
   // set everything up (window, shaders, terrain, matrices)
   bool init();
 
@@ -45,7 +48,8 @@ private:
   // --- Scene objects ---
   std::unique_ptr<Terrain> terrain;
   ShaderManager shaderManager;
-
+  double mouseX = 0.0;
+  double mouseY = 0.0;
   // --- Matrices ---
   glm::mat4 view{1.0f};
   glm::mat4 projection{1.0f};
