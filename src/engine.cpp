@@ -3,6 +3,10 @@
 #include "map/Terrain.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <fstream>
+#include <filesystem>
+#include <string>
+#include <sstream>
 
 Engine::Engine() : cameraZ(-200.0f)
 {
@@ -108,9 +112,10 @@ void Engine::initShaders()
 {
   shaderManager = ShaderManager();
 
+  // Paths relative to the *build* directory
   shaderManager.loadShader(
-      "/Users/annemara/Desktop/Final-Project-behenry-aemara/res/shaders/shape3D.vert",
-      "/Users/annemara/Desktop/Final-Project-behenry-aemara/res/shaders/shape3D.frag",
+      "../res/shaders/shape3D.vert",
+      "../res/shaders/shape3D.frag",
       nullptr,
       "terrain");
 }
@@ -246,6 +251,8 @@ void Engine::updateHoverElevation()
 
   // 3) Map worldPos → DEM height
   float elev = 0.0f;
+  // 3) Map worldPos → DEM height
+  // float elev = 0.0f;
   if (terrain->worldToHeight(worldPos, elev))
   {
     hoverInfo.valid = true;
@@ -253,8 +260,13 @@ void Engine::updateHoverElevation()
     hoverInfo.worldZ = worldPos.z;
     hoverInfo.elevation = elev;
 
-    // For now: spam console so we see it works
-    std::cout << "Hover elevation: " << elev << std::endl;
+    // Optional: still log sometimes if you want
+    // std::cout << "Hover elevation: " << elev << std::endl;
+
+    // --- Integrated "bubble": show in window title ---
+    std::ostringstream title;
+    title << "Final Project  |  Elevation: " << static_cast<int>(elev) << " m";
+    glfwSetWindowTitle(window, title.str().c_str());
   }
 }
 
@@ -293,7 +305,6 @@ bool Engine::init()
 
   Shader &terrainShader = shaderManager.getShader("terrain");
 
-  // These initial values are mostly ignored once ASC is loaded
   int gridWidth = 500;
   int gridHeight = 500;
   float cellSize = 1.0f;

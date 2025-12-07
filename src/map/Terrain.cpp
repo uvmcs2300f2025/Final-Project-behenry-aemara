@@ -2,6 +2,8 @@
 
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 
 #include <glad/glad.h>
 
@@ -87,7 +89,6 @@ void Terrain::generateMesh()
     vertices.clear();
     indices.clear();
 
-    // Safety check
     if (heightData.empty() || heightData[0].empty())
     {
         std::cerr << "generateMesh: no height data\n";
@@ -96,8 +97,6 @@ void Terrain::generateMesh()
 
     const int fullH = height;
     const int fullW = width;
-    // Horizontal scale so terrain is ~10x10 units in X/Z
-    xyScale = 0.005f;
 
     // Downsample factor – larger = fewer vertices
     const int sampleStep = 20;
@@ -107,16 +106,14 @@ void Terrain::generateMesh()
 
     vertices.reserve(static_cast<size_t>(meshWidth) * meshHeight * 3);
 
-    // Horizontal scale so terrain is ~10x10 units in X/Z
+    // Use the member scales so they match worldToHeight
+    const float scaleXY = xyScale;    // 0.005f from header
+    const float vScale = heightScale; // vertical exaggeration
 
-    // Vertical scale: how tall the whole terrain should be
-    const float heightScale = 5.0f; // tweak this: 1–8 to taste
-
-    // Center around (0,0) in X/Z
     const float halfW = static_cast<float>(fullW) / 2.0f;
     const float halfH = static_cast<float>(fullH) / 2.0f;
 
-    // --- NEW: compute local min/max over the sampled points ---
+    // Compute local min/max over sampled points for normalization
     float localMin = std::numeric_limits<float>::infinity();
     float localMax = -std::numeric_limits<float>::infinity();
 
@@ -134,23 +131,19 @@ void Terrain::generateMesh()
 
     float range = localMax - localMin;
     if (range <= 0.0001f)
-        range = 1.0f; // avoid divide-by-zero
+        range = 1.0f;
 
-    // --- Build the vertex array using normalized heights ---
+    // Build vertices
     for (int row = 0; row < fullH; row += sampleStep)
     {
         for (int col = 0; col < fullW; col += sampleStep)
         {
-            // X/Z coordinates, centered
-            float x = (static_cast<float>(col) - halfW) * xyScale;
-            float z = (static_cast<float>(row) - halfH) * xyScale;
+            float x = (static_cast<float>(col) - halfW) * scaleXY;
+            float z = (static_cast<float>(row) - halfH) * scaleXY;
 
-            // Height from DEM
             float h = heightData[row][col];
-
-            // Normalize: t in [0,1], then shift to [-0.5,0.5]
-            float t = (h - localMin) / range;
-            float y = heightScale * (t - 0.5f);
+            float t = (h - localMin) / range; // 0..1
+            float y = vScale * (t - 0.5f);    // centered around 0
 
             vertices.push_back(x);
             vertices.push_back(y);
@@ -158,7 +151,7 @@ void Terrain::generateMesh()
         }
     }
 
-    // Build index buffer (two triangles per quad)
+    // Indices (two triangles per quad)
     for (int r = 0; r < meshHeight - 1; ++r)
     {
         for (int c = 0; c < meshWidth - 1; ++c)
@@ -168,12 +161,10 @@ void Terrain::generateMesh()
             int bl = (r + 1) * meshWidth + c;
             int br = bl + 1;
 
-            // Triangle 1
             indices.push_back(tl);
             indices.push_back(bl);
             indices.push_back(tr);
 
-            // Triangle 2
             indices.push_back(tr);
             indices.push_back(bl);
             indices.push_back(br);
@@ -183,8 +174,8 @@ void Terrain::generateMesh()
     std::cout << "Mesh (ASC): " << meshWidth << " x " << meshHeight
               << " verts=" << vertices.size() / 3
               << " tris=" << indices.size() / 3 << std::endl;
-    std::cout << "Local min/max used in mesh: " << localMin
-              << " / " << localMax << std::endl;
+    std::cout << "Local min/max used in mesh: "
+              << localMin << " / " << localMax << std::endl;
 }
 
 // Upload mesh to GPU
@@ -245,21 +236,40 @@ bool Terrain::worldToHeight(const glm::vec3 &worldPos, float &outHeight) const
     if (heightData.empty() || heightData[0].empty())
         return false;
 
-    float halfW = static_cast<float>(width) / 2.0f;
-    float halfH = static_cast<float>(height) / 2.0f;
+    const float fullW = static_cast<float>(width);
+    const float fullH = static_cast<float>(height);
+    const float halfW = fullW / 2.0f;
+    const float halfH = fullH / 2.0f;
 
-    // invert how we built the mesh:
-    // x = (col - halfW) * xyScale  -> col = x/xyScale + halfW
-    // z = (row - halfH) * xyScale  -> row = z/xyScale + halfH
+    // In generateMesh: x = (col - halfW) * xyScale
+    //                  z = (row - halfH) * xyScale
+    // → invert that to get fractional col/row
     float colF = worldPos.x / xyScale + halfW;
     float rowF = worldPos.z / xyScale + halfH;
 
-    int col = static_cast<int>(std::round(colF));
-    int row = static_cast<int>(std::round(rowF));
+    if (colF < 0.0f || colF > fullW - 1.0f ||
+        rowF < 0.0f || rowF > fullH - 1.0f)
+    {
+        return false; // outside DEM
+    }
 
-    if (row < 0 || row >= height || col < 0 || col >= width)
-        return false;
+    // Bilinear interpolate in DEM grid
+    int c0 = static_cast<int>(floorf(colF));
+    int r0 = static_cast<int>(floorf(rowF));
+    int c1 = std::min(c0 + 1, width - 1);
+    int r1 = std::min(r0 + 1, height - 1);
 
-    outHeight = heightData[row][col];
+    float tx = colF - static_cast<float>(c0);
+    float ty = rowF - static_cast<float>(r0);
+
+    float h00 = heightData[r0][c0];
+    float h10 = heightData[r0][c1];
+    float h01 = heightData[r1][c0];
+    float h11 = heightData[r1][c1];
+
+    float h0 = h00 + tx * (h10 - h00);
+    float h1 = h01 + tx * (h11 - h01);
+    outHeight = h0 + ty * (h1 - h0); // real DEM meters
+
     return true;
 }
