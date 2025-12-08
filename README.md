@@ -46,7 +46,37 @@ cmake --build .
 ./FinalProject
 ```
 # Analysis
-TODO
+### Why did you choose this data set?
+
+We chose this data set because it provides real world, hgih-quality data for the entire state, which felt practical and useful.
+
+
+### Challenges expected versus challenges faced?
+
+Challenges we expected to face:
+- Parsing .asc file correctly
+- Cleaning the data
+- Camera and matrix math for the view projection
+
+Challenges we actually faced:
+- File path and Cmake bugs
+- Working across multiple branches/handling merge conflicts
+- Coordinate scaling and visual clarity
+
+
+### How could your 3D model be used?
+This visual would be beneficial for mapping and GIS visualization, interactive displays involving the topology of Vermont, and even for tourism and evnironmental science related fields.
+
+
+
+
+
+### Explanation of how the files interact
+- Engine.cpp/Engine.h: controls the entire application by loading GLFW OpenGL, shaders, and handles the camera movements and input
+
+- Terrain.cpp/Terrain.h: Loads the DEM (.asc file), generates the mesh grid, and creates VAO, VBO, and EBO to draw
+
+- Shaders: Engine loads shaders and passes them to Terrain in order to color the Terrain
 
 
 
