@@ -51,7 +51,50 @@ TODO
 
 
 # Self Evaluation:
-TODO
+### Complexity / Usability - 80/80 points
+
+Main program uses
+many concepts
+from all modules;
+complex enough
+for a large final
+project (double the
+size of an open
+ended)
+
+
+
+### Interactivity - 40/40 points
+
+Program is fully
+interactive in ways
+that enhance the
+functionality of the
+program
+
+
+
+### User Experience - 40/40 points
+
+Program is
+user-friendly,
+intuitive, and runs
+well
+
+
+
+### ReadME - 20/20 points
+
+Clear, concise,
+well-formatted
+README with all
+requirements; includes
+an analysis and
+conclusions from the
+model
+
+
+
 
 # Rubric
 
@@ -72,7 +115,7 @@ TODO
 
 
 
-### User Experience — 40 points
+### User Experience - 40 points
 - 0 pts: Not usable  
 - 10 pts: Not intuitive  
 - 20 pts: Usable with flaws  
@@ -81,7 +124,7 @@ TODO
 
 
 
-### README — 20 points
+### README - 20 points
 - -20 pts: No README  
 - -10 pts: Missing parts  
 - 0 pts: Meets requirements   
