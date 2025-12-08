@@ -36,14 +36,14 @@ public:
   void update();
   void render();
 
-  // mouse callback from GLFW
+  // mouse callback
   void onMouseMove(double xpos, double ypos);
 
 private:
   unsigned int initWindow(bool debug = false);
   void initShaders();
   void initMatrices();
-  void updateHoverElevation(); // <-- matches engine.cpp
+  void updateHoverElevation();
 
   GLFWwindow *window{nullptr};
   std::unique_ptr<Terrain> terrain;

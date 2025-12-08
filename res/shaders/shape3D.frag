@@ -1,6 +1,6 @@
 #version 330 core
 
-in float vHeightNorm;   // normalized height 0..1
+in float vHeightNorm;   
 out vec4 FragColor;
 
 vec3 topoColor(int band)
@@ -20,11 +20,11 @@ void main()
     float t = clamp(vHeightNorm, 0.0, 1.0);
 
     // *** Treat very-low heights as "no data" and don't draw them ***
-    // tweak 0.02–0.05 depending on how much of the edge you want gone
+    // can be shifted a bit but like  0.02–0.05 depending on how much of the edge you want gone
 
 
-// Hide only cells whose normalized height is *really* zero
-// (i.e., nodata that we turned into 0 in C++).
+// Hide only cells whose normalized height actually zero
+
     if (t <= 0.0001)
         discard;
 

@@ -22,7 +22,6 @@ void Shader::compile(const char *vertexSource, const char *fragmentSource, const
     glCompileShader(sFragment);
     checkCompileErrors(sFragment, "FRAGMENT");
 
-    // if geometry shader source code is given, also compile geometry shader
     if (geometrySource != nullptr)
     {
         gShader = glCreateShader(GL_GEOMETRY_SHADER);
@@ -31,7 +30,7 @@ void Shader::compile(const char *vertexSource, const char *fragmentSource, const
         checkCompileErrors(gShader, "GEOMETRY");
     }
 
-    // shader program
+    // shaderssss
     this->ID = glCreateProgram();
     glAttachShader(this->ID, sVertex);
     glAttachShader(this->ID, sFragment);
@@ -41,7 +40,7 @@ void Shader::compile(const char *vertexSource, const char *fragmentSource, const
     glLinkProgram(this->ID);
     checkCompileErrors(this->ID, "PROGRAM");
 
-    // delete the shaders as they're linked into our program now and no longer necessary
+    // this gets rid of the shaders once they have done an amazing job shading
     glDeleteShader(sVertex);
     glDeleteShader(sFragment);
     if (geometrySource != nullptr)

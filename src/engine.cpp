@@ -75,10 +75,10 @@ unsigned int Engine::initWindow(bool debug)
     return 1;
   }
 
-  // initial viewport
+  // starting view
   glViewport(0, 0, width, height);
 
-  // blending + depth
+  // blending
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -87,7 +87,7 @@ unsigned int Engine::initWindow(bool debug)
   // vsync on
   glfwSwapInterval(1);
 
-  // --- mouse tracking setup ---
+  // THIS IS HOVER
   glfwSetWindowUserPointer(window, this);
   glfwSetCursorPosCallback(
       window,
@@ -112,7 +112,6 @@ void Engine::initShaders()
 {
   shaderManager = ShaderManager();
 
-  // Paths relative to the *build* directory
   shaderManager.loadShader(
       "../res/shaders/shape3D.vert",
       "../res/shaders/shape3D.frag",
@@ -122,18 +121,18 @@ void Engine::initShaders()
 
 void Engine::initMatrices()
 {
-  // Simple, known-good angled camera that used to work
+  // setting up the camera view
   view = glm::lookAt(
-      glm::vec3(0.0f, 60.0f, .1f), // eye position (back and above)
-      glm::vec3(0.0f, 0.0f, 0.0f), // look at the origin
-      glm::vec3(0.0f, 0.0f, -1.0f) // world up
+      glm::vec3(0.0f, 60.0f, .1f), // eye position
+      glm::vec3(0.0f, 0.0f, 0.0f), // keeping it centered
+      glm::vec3(0.0f, 0.0f, -1.0f) // viewpoint
   );
 
   projection = glm::perspective(
       glm::radians(45.0f),
       static_cast<float>(width) / static_cast<float>(height),
       0.1f,
-      5000.0f // far plane large enough for big DEM
+      5000.0f // this can be played with
   );
   camYaw = 0.0f;
   camPitch = 45.0f;
@@ -152,44 +151,44 @@ void Engine::processInput()
       keys[key] = false;
   }
 
-  // basic escape handling
+  // killing the window
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
   {
     glfwSetWindowShouldClose(window, true);
   }
 
-  // -------- NEW: orbit camera controls --------
-  float rotSpeed = 150.0f * deltaTime;  // deg/sec
-  float zoomSpeed = 250.0f * deltaTime; // units/sec
+  // spinny spinny camera
+  float rotSpeed = 150.0f * deltaTime;  // speed
+  float zoomSpeed = 250.0f * deltaTime; // speed but distance
 
-  // Left / Right → spin around VT
+  // lefty loosey righty tighty
   if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     camYaw -= rotSpeed;
   if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     camYaw += rotSpeed;
 
-  // Up / Down → tilt camera
+  // up down and around the world
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     camPitch += rotSpeed;
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     camPitch -= rotSpeed;
 
-  // Clamp pitch so we don't flip
+  // Clamping not camping
   if (camPitch < 10.0f)
-    camPitch = 10.0f; // minimum tilt
+    camPitch = 10.0f; // min
   if (camPitch > 80.0f)
-    camPitch = 80.0f; // maximum tilt
+    camPitch = 80.0f; // max
 
-  // Optional: zoom in/out with W/S
+  // ZOOOMMMING through the state
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     camRadius -= zoomSpeed;
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     camRadius += zoomSpeed;
 
   if (camRadius < 25.0f)
-    camRadius = 25.0f; // don't go inside VT
+    camRadius = 25.0f; // don't go inside VT - that would be unkind
   if (camRadius > 3000.0f)
-    camRadius = 3000.0f; // don't go to space
+    camRadius = 3000.0f; // don't go to space - that would also be unkind
 }
 
 void Engine::update()
@@ -198,16 +197,16 @@ void Engine::update()
   deltaTime = currentFrame - lastFrame;
   lastFrame = currentFrame;
 
-  // Convert angles to radians
+  // moving angles to radians like any modern woman
   float yawRad = glm::radians(camYaw);
   float pitchRad = glm::radians(camPitch);
 
-  // Spherical coordinates → Cartesian (orbit around origin)
+  // Spherical as sphere is world but world is flat
   float x = camRadius * cosf(pitchRad) * sinf(yawRad);
   float y = camRadius * sinf(pitchRad);
   float z = camRadius * cosf(pitchRad) * cosf(yawRad);
 
-  // Look at center of terrain (assumed around origin)
+  // center of the terrain is the center of my heart
   view = glm::lookAt(
       glm::vec3(x, y, z),
       glm::vec3(0.0f, 0.0f, 0.0f),
@@ -223,7 +222,7 @@ void Engine::updateHoverElevation()
   int mx = static_cast<int>(mouseX);
   int my = static_cast<int>(mouseY);
 
-  // OpenGL origin = bottom-left, GLFW mouse origin = top-left
+  // orgin smorgin
   int readY = static_cast<int>(height - my - 1);
 
   if (mx < 0 || mx >= static_cast<int>(width) ||
@@ -232,27 +231,24 @@ void Engine::updateHoverElevation()
     return;
   }
 
-  // 1) Read depth under the mouse
+  // reading the ellie baby
   float depth = 1.0f;
   glReadPixels(mx, readY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 
-  // depth == 1.0 → nothing drawn there (background)
+  // BACKGROUND IS BACKGROUND not data
   if (depth == 1.0f)
     return;
 
-  // 2) Unproject to world space
   glm::vec3 winCoord(mouseX, readY, depth);
   glm::vec4 viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
 
-  glm::mat4 model(1.0f); // terrain uses identity model
+  glm::mat4 model(1.0f); // terrain is terrain, dont change this from 1, it will break everything
   glm::mat4 mv = view * model;
 
   glm::vec3 worldPos = glm::unProject(winCoord, mv, projection, viewport);
 
-  // 3) Map worldPos → DEM height
   float elev = 0.0f;
-  // 3) Map worldPos → DEM height
-  // float elev = 0.0f;
+
   if (terrain->worldToHeight(worldPos, elev))
   {
     hoverInfo.valid = true;
@@ -260,10 +256,9 @@ void Engine::updateHoverElevation()
     hoverInfo.worldZ = worldPos.z;
     hoverInfo.elevation = elev;
 
-    // Optional: still log sometimes if you want
-    // std::cout << "Hover elevation: " << elev << std::endl;
-
-    // --- Integrated "bubble": show in window title ---
+    // intresting stuff
+    // this is the title bar once you start reading data which i think is cool
+    // as it orig says final project but now its more fun
     std::ostringstream title;
     title << " Scaled Elevation Model of VT  |  Elevation: " << static_cast<int>(elev) << " m";
     glfwSetWindowTitle(window, title.str().c_str());
@@ -277,7 +272,7 @@ void Engine::render()
 
   glEnable(GL_DEPTH_TEST);
 
-  // Uncomment to see wireframe
+  // this is awesome wireframe stuff to see the mesh
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   if (terrain)
@@ -285,6 +280,7 @@ void Engine::render()
     terrain->draw(view, projection);
   }
   updateHoverElevation();
+  // this is teh friend of the commented line like 5 lines up awesome for debugging
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -296,7 +292,7 @@ bool Engine::shouldClose()
 
 bool Engine::init()
 {
-  // constructor already called initWindow/initShaders/initMatrices
+  // bro dont call the instructor here
   if (!window)
   {
     std::cerr << "Engine::init() - window is null, initWindow must have failed\n";
@@ -311,7 +307,6 @@ bool Engine::init()
 
   terrain = std::make_unique<Terrain>(terrainShader, gridWidth, gridHeight, cellSize);
 
-  // path is from the *build* directory → ../res/heightmaps/...
   if (!terrain->loadHeightmapASC("../res/heightmaps/rastert_dem_241.asc"))
   {
     std::cerr << "Failed to load heightmap ../res/heightmaps/rastert_dem_241.asc\n";

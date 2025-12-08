@@ -1,4 +1,4 @@
-#include "Terrain.h" // adjust path if needed (e.g., "Terrain.h" if in same folder)
+#include "Terrain.h"
 
 #include <fstream>
 #include <iostream>
@@ -7,7 +7,7 @@
 
 #include <glad/glad.h>
 
-// Constructor just stores basic info; real mesh is built in loadHeightmapASC
+// Constructor
 Terrain::Terrain(Shader &shader, int width, int height, float cellSize)
     : shader(shader),
       model(1.0f),
@@ -43,7 +43,7 @@ bool Terrain::loadHeightmapASC(const std::string &filename)
 
     heightData.assign(height, std::vector<float>(width));
 
-    // RESET min/max for this load
+    // resets the  min & max for this load
     minHeight = std::numeric_limits<float>::infinity();
     maxHeight = -std::numeric_limits<float>::infinity();
 
@@ -98,7 +98,8 @@ void Terrain::generateMesh()
     const int fullH = height;
     const int fullW = width;
 
-    // Downsample factor – larger = fewer vertices
+    // Downsample factor: when larger is has fewer vertices
+    // if being run on an actual computer you can make the value one for max detail
     const int sampleStep = 20;
 
     meshHeight = (fullH + sampleStep - 1) / sampleStep;
@@ -106,14 +107,14 @@ void Terrain::generateMesh()
 
     vertices.reserve(static_cast<size_t>(meshWidth) * meshHeight * 3);
 
-    // Use the member scales so they match worldToHeight
+    // matching this data to worldToHeight values
     const float scaleXY = xyScale;    // 0.005f from header
     const float vScale = heightScale; // vertical exaggeration
 
     const float halfW = static_cast<float>(fullW) / 2.0f;
     const float halfH = static_cast<float>(fullH) / 2.0f;
 
-    // Compute local min/max over sampled points for normalization
+    // local min and max for data normilization
     float localMin = std::numeric_limits<float>::infinity();
     float localMax = -std::numeric_limits<float>::infinity();
 
@@ -133,7 +134,7 @@ void Terrain::generateMesh()
     if (range <= 0.0001f)
         range = 1.0f;
 
-    // Build vertices
+    // vertices
     for (int row = 0; row < fullH; row += sampleStep)
     {
         for (int col = 0; col < fullW; col += sampleStep)
@@ -151,7 +152,7 @@ void Terrain::generateMesh()
         }
     }
 
-    // Indices (two triangles per quad)
+    // Indices: using two triangles per quad
     for (int r = 0; r < meshHeight - 1; ++r)
     {
         for (int c = 0; c < meshWidth - 1; ++c)
@@ -179,6 +180,7 @@ void Terrain::generateMesh()
 }
 
 // Upload mesh to GPU
+// this is how the map is constructed
 void Terrain::initBuffers()
 {
     if (VAO == 0)
@@ -204,11 +206,11 @@ void Terrain::initBuffers()
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(
-        0, // location 0 in your vertex shader
-        3, // x, y, z
+        0,
+        3,
         GL_FLOAT,
         GL_FALSE,
-        3 * sizeof(float), // stride
+        3 * sizeof(float),
         (void *)0);
 
     glBindVertexArray(0);
@@ -241,19 +243,17 @@ bool Terrain::worldToHeight(const glm::vec3 &worldPos, float &outHeight) const
     const float halfW = fullW / 2.0f;
     const float halfH = fullH / 2.0f;
 
-    // In generateMesh: x = (col - halfW) * xyScale
-    //                  z = (row - halfH) * xyScale
-    // → invert that to get fractional col/row
+    // gets inverted to get the fractional col/row
     float colF = worldPos.x / xyScale + halfW;
     float rowF = worldPos.z / xyScale + halfH;
 
     if (colF < 0.0f || colF > fullW - 1.0f ||
         rowF < 0.0f || rowF > fullH - 1.0f)
     {
-        return false; // outside DEM
+        return false;
     }
 
-    // Bilinear interpolate in DEM grid
+    // Bilinear interpolation
     int c0 = static_cast<int>(floorf(colF));
     int r0 = static_cast<int>(floorf(rowF));
     int c1 = std::min(c0 + 1, width - 1);
@@ -269,7 +269,7 @@ bool Terrain::worldToHeight(const glm::vec3 &worldPos, float &outHeight) const
 
     float h0 = h00 + tx * (h10 - h00);
     float h1 = h01 + tx * (h11 - h01);
-    outHeight = h0 + ty * (h1 - h0); // real DEM meters
+    outHeight = h0 + ty * (h1 - h0); // HOVER FUNCTIONNNNNNNN
 
     return true;
 }
